@@ -94,7 +94,7 @@
     <div class="auth-box">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <h3 style="font-size:1rem;">👑 ಮಾಸ್ಟರ್ ಲಾಗಿನ್ ಪುಟ</h3>
-        <button type="button" onclick="triggerInstallApp()" class="install-btn" style="font-size:0.65rem; padding:4px 8px;">📲 ಇನ್‌ಸ್ಟಾಲ್</button>
+        <button type="button" id="loginInstallBtn" class="install-btn" style="font-size:0.65rem; padding:4px 8px;">📲 ಇನ್‌ಸ್ಟಾಲ್</button>
       </div>
       <p style="font-size: 0.75rem; color: #666; margin-bottom: 8px;">ನಿಮ್ಮ ಹೆಸರು, ಮೊಬೈಲ್ ಹಾಗೂ ಕ್ಯೂಆರ್ ಕೋಡ್ ಅಪ್ಲೋಡ್ ಮಾಡಿ</p>
       
@@ -104,7 +104,7 @@
       <div style="text-align:left; font-size:0.75rem; color:#444; margin-top:4px;">ಕ್ಯೂಆರ್ ಕೋಡ್ ಫೋಟೋ ಅಪ್ಲೋಡ್ ಮಾಡಿ:</div>
       <input type="file" id="loginQrFile" accept="image/*" style="width:100%; padding:6px; margin:4px 0; border:1px solid #ccc; border-radius:6px; font-size:0.8rem;">
       
-      <button type="button" class="btn btn-success" style="width:100%; padding:10px; font-size:0.85rem; margin-top:10px;" onclick="verifyMasterLogin()">ಲಾಗಿನ್ ಮಾಡಿ ಮುಖಪುಟಕ್ಕೆ ಹೋಗಿ</button>
+      <button type="button" id="submitLoginBtn" class="btn btn-success" style="width:100%; padding:10px; font-size:0.85rem; margin-top:10px;">ಲಾಗಿನ್ ಮಾಡಿ ಮುಖಪುಟಕ್ಕೆ ಹೋಗಿ</button>
     </div>
   </div>
 
@@ -117,7 +117,7 @@
       </div>
       <div style="display:flex; gap:10px; margin-top:10px;">
         <a id="downloadLink" href="" download="document.jpg" class="btn btn-success" style="flex:1; text-decoration:none; text-align:center; padding:8px;">ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ</a>
-        <button class="btn btn-danger" style="flex:1;" onclick="closeImageModal()">ಮುಚ್ಚಿ</button>
+        <button type="button" class="btn btn-danger" style="flex:1;" onclick="closeImageModal()">ಮುಚ್ಚಿ</button>
       </div>
     </div>
   </div>
@@ -125,7 +125,7 @@
   <div class="container" id="mainContainer" style="display:none;">
     <header>
       <h2 style="font-size: 1.1rem;">👑 ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್</h2>
-      <button id="topInstallBtn" onclick="triggerInstallApp()" class="install-btn">📲 ಇನ್‌ಸ್ಟಾಲ್</button>
+      <button id="topInstallBtn" type="button" class="install-btn">📲 ಇನ್‌ಸ್ಟಾಲ್</button>
     </header>
 
     <div class="instapp-bar">
@@ -137,12 +137,12 @@
     </div>
 
     <div class="master-nav">
-      <button class="m-btn active" onclick="switchTab('shopsTab', this)">ಅಂಗಡಿ ಮಾಲೀಕರು</button>
-      <button class="m-btn" onclick="switchTab('bannersTab', this)">📢 ಜಾಹೀರಾತು</button>
-      <button class="m-btn" onclick="switchTab('withdrawTab', this)">💳 ವಿತ್‌ಡ್ರಾ</button>
-      <button class="m-btn" onclick="switchTab('deliveryTab', this)">ಡೆಲಿವರಿ ಬಾಯ್ಸ್</button>
-      <button class="m-btn" onclick="switchTab('customersTab', this)">ಗ್ರಾಹಕರು</button>
-      <button class="m-btn" onclick="switchTab('returnsTab', this)">ರಿಟರ್ನ್ಸ್</button>
+      <button type="button" class="m-btn active" onclick="switchTab('shopsTab', this)">ಅಂಗಡಿ ಮಾಲೀಕರು</button>
+      <button type="button" class="m-btn" onclick="switchTab('bannersTab', this)">📢 ಜಾಹೀರಾತು</button>
+      <button type="button" class="m-btn" onclick="switchTab('withdrawTab', this)">💳 ವಿತ್‌ಡ್ರಾ</button>
+      <button type="button" class="m-btn" onclick="switchTab('deliveryTab', this)">ಡೆಲಿವರಿ ಬಾಯ್ಸ್</button>
+      <button type="button" class="m-btn" onclick="switchTab('customersTab', this)">ಗ್ರಾಹಕರು</button>
+      <button type="button" class="m-btn" onclick="switchTab('returnsTab', this)">ರಿಟರ್ನ್ಸ್</button>
     </div>
 
     <input type="text" id="masterSearch" class="search-input" placeholder="🔍 ಹೆಸರು ಅಥವಾ ಐಡಿ ಬಳಸಿ ಹುಡುಕಿ..." oninput="filterMasterData()">
@@ -161,7 +161,7 @@
         <input type="text" id="bannerUrlInput" placeholder="ಇಮೇಜ್ URL ಹಾಕಿ (http://...)" style="width:100%; padding:8px; margin:6px 0; border:1px solid #ccc; border-radius:4px;">
         <div style="text-align:center; margin:4px 0;">ಅಥವಾ</div>
         <input type="file" id="bannerFileInput" accept="image/*" style="width:100%; margin-bottom:8px;">
-        <button class="btn btn-success" style="width:100%; padding:8px;" onclick="uploadBannerImage()">➕ ಆಪ್‌ಗೆ ಜಾಹೀರಾತು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</button>
+        <button type="button" class="btn btn-success" style="width:100%; padding:8px;" onclick="uploadBannerImage()">➕ ಆಪ್‌ಗೆ ಜಾಹೀರಾತು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</button>
       </div>
       <div id="bannersListContainer"></div>
     </div>
@@ -201,6 +201,11 @@
     let deferredPrompt = null;
 
     window.addEventListener('load', () => {
+      // Direct Event Listener Bindings for Guarantee Click Actions
+      document.getElementById('submitLoginBtn').addEventListener('click', verifyMasterLogin);
+      document.getElementById('loginInstallBtn').addEventListener('click', triggerInstallApp);
+      document.getElementById('topInstallBtn').addEventListener('click', triggerInstallApp);
+
       if (localStorage.getItem('master_logged_in') === 'true') {
         document.getElementById('authOverlay').style.display = 'none';
         document.getElementById('mainContainer').style.display = 'block';
@@ -245,7 +250,11 @@
       if (qrFile) {
         const reader = new FileReader();
         reader.onload = function(e) {
-          localStorage.setItem('master_qr_img', e.target.result);
+          try {
+            localStorage.setItem('master_qr_img', e.target.result);
+          } catch(err) {
+            console.log("Storage Limit Exceeded");
+          }
           completeLogin(name, phone);
         };
         reader.readAsDataURL(qrFile);
