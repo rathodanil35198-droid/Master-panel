@@ -50,7 +50,7 @@
     .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
     header { background: var(--primary); color: white; padding: 12px; text-align: center; border-radius: 8px; margin-bottom: 12px; position: relative; display: flex; align-items: center; justify-content: space-between; }
     
-    .install-btn { background: #2e7d32; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; animation: pulseInstall 1.5s infinite; }
+    .install-btn { background: #2e7d32; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; animation: pulseInstall 1.5s infinite; z-index: 10; }
     @keyframes pulseInstall {
       0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.7); }
       70% { transform: scale(1.03); box-shadow: 0 0 0 6px rgba(46, 125, 50, 0); }
@@ -190,38 +190,15 @@
     let allWithdrawals = [];
     let deferredPrompt = null;
 
-    window.addEventListener('load', () => { checkInstallStatus(); });
-
-    function checkInstallStatus() {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-      const isInstalledFlag = localStorage.getItem('master_app_installed_status') === 'true';
-      if (isStandalone || isInstalledFlag) {
-        const installBtn = document.getElementById('topInstallBtn');
-        if (installBtn) installBtn.style.display = 'none';
-      }
-    }
-
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      checkInstallStatus();
-    });
-
-    window.addEventListener('appinstalled', () => {
-      localStorage.setItem('master_app_installed_status', 'true');
-      const installBtn = document.getElementById('topInstallBtn');
-      if (installBtn) installBtn.style.display = 'none';
     });
 
     async function triggerInstallApp() {
       if (deferredPrompt) {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          localStorage.setItem('master_app_installed_status', 'true');
-          const installBtn = document.getElementById('topInstallBtn');
-          if (installBtn) installBtn.style.display = 'none';
-        }
         deferredPrompt = null;
       } else {
         alert("ಆಪ್ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಲು ನಿಮ್ಮ ಬ್ರೌಸರ್ ಮೇಲಿರುವ ಮೂರು ಚುಕ್ಕೆಗಳ (⋮) ಮೆನು ಕ್ಲಿಕ್ ಮಾಡಿ 'Install app' ಅಥವಾ 'Add to Home screen' ಆಯ್ಕೆಮಾಡಿ.");
@@ -232,7 +209,6 @@
       window.history.pushState({ page: 'master' }, '', '');
       window.addEventListener('popstate', () => { window.history.pushState({ page: 'master' }, '', ''); });
       loadInstappStatus();
-      checkInstallStatus();
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log("SW fail", err));
       }
