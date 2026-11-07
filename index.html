@@ -102,8 +102,8 @@
     .btn-success { background: var(--success); }
     .btn-primary { background: var(--secondary); }
 
-    /* ಜಾಹೀರಾತು ಮತ್ತು ಕ್ಯೂಆರ್ ಫೋಟೋಗಳು ಕಟ್ ಆಗದೆ ಪೂರ್ತಿಯಾಗಿ ಕಾಣಲು object-fit: contain ಅಳವಡಿಸಲಾಗಿದೆ */
-    .banner-preview-img { width: 100%; height: auto; max-height: 250px; object-fit: contain; background: #fff; border-radius: 6px; margin-bottom: 6px; border: 1px solid #ccc; display: block; }
+    /* 1200x500 ಅಳತೆಯ ಬ್ಯಾನರ್ ಫೋಟೋ ಪೂರ್ತಿಯಾಗಿ ಅಂದವಾಗಿ ಕಾಣಲು ಸೆಟ್ಟಿಂಗ್ */
+    .banner-preview-img { width: 100%; height: auto; aspect-ratio: 1200 / 500; object-fit: cover; background: #fff; border-radius: 6px; margin-bottom: 6px; border: 1px solid #ccc; display: block; }
     
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 10000; padding: 15px; }
     .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 400px; width: 100%; text-align: center; max-height: 90vh; overflow-y: auto; }
@@ -119,7 +119,7 @@
     <div class="splash-text">👑 ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್</div>
   </div>
 
-  <!-- Secure Password Overlay (Only shows when opening app fresh) -->
+  <!-- Secure Password Overlay -->
   <div id="authOverlay">
     <div class="auth-box">
       <h3>🔐 ಮಾಸ್ಟರ್ ಲಾಗಿನ್ ಕೋಡ್</h3>
@@ -185,7 +185,7 @@
 
     <!-- TAB 2: ADVERTISEMENT BANNERS -->
     <div id="bannersTab" style="display:none;">
-      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">📢 ಮೇಲ್ಭಾಗದ ಜಾಹೀರಾತು ಬ್ಯಾನರ್‌ಗಳು</h3>
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">📢 ಮೇಲ್ಭಾಗದ ಜಾಹೀರಾತು ಬ್ಯಾನರ್‌ಗಳು (1200x500 ಸೈಜ್)</h3>
       <div class="card-box" style="background:#e8f4fd;">
         <b>ಹೊಸ ಜಾಹೀರಾತು ಫೋಟೋ ಸೇರಿಸಿ:</b>
         <input type="text" id="bannerUrlInput" placeholder="ಇಮೇಜ್ URL ಹಾಕಿ (http://...)" style="width:100%; padding:8px; margin:6px 0; border:1px solid #ccc; border-radius:4px;">
@@ -365,22 +365,45 @@
       processCustomers();
     }
 
+    /* 1200x500 ಬ್ಯಾನರ್ ಫೋಟೋ ಕಂಪ್ರೆಸ್ ಮಾಡಿ ಫೈರ್‌ಬೇಸ್ ಲಿಮಿಟ್ (1MB) ಮೀರದಂತೆ ಅಪ್‌ಲೋಡ್ ಮಾಡುವ ಫಂಕ್ಷನ್ */
     async function uploadBannerImage() {
       const urlInput = document.getElementById('bannerUrlInput').value.trim();
       const fileInput = document.getElementById('bannerFileInput').files[0];
-      let finalUrl = urlInput;
 
-      if (!finalUrl && fileInput) {
+      if (urlInput) {
+        await saveBannerToFirestore(urlInput);
+        return;
+      }
+
+      if (fileInput) {
         const reader = new FileReader();
-        reader.onload = async function(e) {
-          finalUrl = e.target.result;
-          await saveBannerToFirestore(finalUrl);
+        reader.onload = function(e) {
+          const img = new Image();
+          img.src = e.target.result;
+          img.onload = async function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            // 1200x500 ಅನುಪಾತಕ್ಕೆ ಅಥವಾ ಗರಿಷ್ಠ ಅಗಲ 1200 ಕ್ಕೆ ಹೊಂದಿಸುವುದು
+            const targetWidth = 1200;
+            const targetHeight = 500;
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+            // ಗುಣಮಟ್ಟವನ್ನು ಕಡಿಮೆ ಮಾಡಿ ಸೈಜ್ 1MB ಒಳಗೆ ಬರುವಂತೆ ಕಂಪ್ರೆಸ್ ಮಾಡುವುದು (Quality: 0.7)
+            let compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            await saveBannerToFirestore(compressedDataUrl);
+          };
         };
         reader.readAsDataURL(fileInput);
         return;
       }
-      if (finalUrl) { await saveBannerToFirestore(finalUrl); }
-      else { alert("ದಯವಿಟ್ಟು ಇಮೇಜ್ URL ಅಥವಾ ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ."); }
+
+      alert("ದಯವಿಟ್ಟು ಇಮೇಜ್ URL ಹಾಕಿ ಅಥವಾ ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ.");
     }
 
     async function saveBannerToFirestore(url) {
@@ -391,7 +414,7 @@
         });
         document.getElementById('bannerUrlInput').value = '';
         document.getElementById('bannerFileInput').value = '';
-        alert("🟢 ಜಾಹೀರಾತು ಯಶಸ್ವಿಯಾಗಿ ಆಪ್‌ನಲ್ಲಿ ಅಪ್‌ಲೋಡ್ ಆಗಿದೆ!");
+        alert("🟢 1200x500 ಜಾಹೀರಾತು ಬ್ಯಾನರ್ ಯಶಸ್ವಿಯಾಗಿ ಆಪ್‌ನಲ್ಲಿ ಅಪ್‌ಲೋಡ್ ಆಗಿದೆ!");
       } catch(e) { alert("Error: " + e.message); }
     }
 
