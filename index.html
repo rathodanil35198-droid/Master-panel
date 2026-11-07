@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್ | Master Panel</title>
-  <link rel="icon" type="image/png" sizes="192x192" href="AR_Taxi_Booking_Go_Fast_512x512.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="logo.png">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#e65100">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -47,7 +47,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background-color: var(--bg); color: var(--dark); padding: 10px; padding-bottom: 40px; }
 
-    /* Splash Screen Styling with 2 Seconds Glow Animation */
+    /* Splash Screen Styling with 2 Seconds Glow Animation and Big Logo */
     #splashScreen {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: linear-gradient(-45deg, #e65100, #ff6d00, #1976d2, #388e3c);
@@ -64,7 +64,7 @@
       animation: pulseGlow 1s infinite alternate, zoomIn 0.8s ease-out;
       display: flex; justify-content: center; align-items: center;
     }
-    .splash-logo-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 3px solid #fff; }
+    .splash-logo-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 3px solid #fff; background: #fff; }
     @keyframes pulseGlow { 0% { transform: scale(0.95); box-shadow: 0 0 15px rgba(255,255,255,0.6); } 100% { transform: scale(1.08); box-shadow: 0 0 40px rgba(255,255,255,1), 0 0 60px rgba(255,215,0,0.8); } }
     @keyframes zoomIn { 0% { opacity: 0; transform: scale(0.4); } 100% { opacity: 1; transform: scale(1); } }
     .splash-text { color: #ffffff; margin-top: 20px; font-size: 1.3rem; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.4); text-align: center; }
@@ -101,7 +101,6 @@
     .btn-danger { background: #e53935; }
     .btn-success { background: var(--success); }
     .btn-primary { background: var(--secondary); }
-    .btn-upi { background: linear-gradient(135deg, #5f259f, #391463); color: #fff; }
 
     .banner-preview-img { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 6px; border: 1px solid #ccc; }
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 10000; padding: 15px; }
@@ -110,15 +109,15 @@
 </head>
 <body>
 
-  <!-- Splash Screen with 2 Seconds Glow Animation -->
+  <!-- Splash Screen with 2 Seconds Glow Animation and Big Official Logo -->
   <div id="splashScreen">
     <div class="splash-logo-box">
-      <img src="AR_Taxi_Booking_Go_Fast_512x512.png" alt="Logo" onerror="this.src='https://via.placeholder.com/160/1e88e5/ffffff?text=MASTER'">
+      <img src="logo.png" alt="Logo" onerror="this.src='https://via.placeholder.com/160/1e88e5/ffffff?text=MASTER'">
     </div>
     <div class="splash-text">👑 ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್</div>
   </div>
 
-  <!-- Secure Password Overlay -->
+  <!-- Secure Password Overlay (Only shows when opening app fresh) -->
   <div id="authOverlay">
     <div class="auth-box">
       <h3>🔐 ಮಾಸ್ಟರ್ ಲಾಗಿನ್ ಕೋಡ್</h3>
@@ -139,6 +138,15 @@
         <a id="downloadLink" href="" download="document.jpg" class="btn btn-success" style="flex:1; text-decoration:none; text-align:center; padding:8px;">ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ</a>
         <button class="btn btn-danger" style="flex:1;" onclick="closeImageModal()">ಮುಚ್ಚಿ</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Shop Products View Modal -->
+  <div id="shopProductsModal" class="modal">
+    <div class="modal-content" style="text-align:left;">
+      <h3 id="shopProductsModalTitle" style="color:var(--primary); margin-bottom:8px; font-size:1rem;">ಅಂಗಡಿಯ ಪ್ರಾಡಕ್ಟ್‌ಗಳು</h3>
+      <div id="shopProductsListContainer" style="max-height:300px; overflow-y:auto; margin-bottom:10px;"></div>
+      <button class="btn btn-danger" style="width:100%;" onclick="closeShopProductsModal()">ಮುಚ್ಚಿ</button>
     </div>
   </div>
 
@@ -216,6 +224,7 @@
     let allDeliveryBoys = [];
     let allCustomers = [];
     let allOrders = [];
+    let allProducts = [];
     let allBanners = [];
     let allWithdrawals = [];
     let deferredPrompt = null;
@@ -314,6 +323,11 @@
         allOrders = [];
         snap.forEach(d => allOrders.push({ id: d.id, ...d.data() }));
         processDataViews();
+      });
+
+      window.onSnapshot(window.collection(window.db, "products"), (snap) => {
+        allProducts = [];
+        snap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
       });
 
       window.onSnapshot(window.collection(window.db, "shop_owners"), (snap) => {
@@ -473,12 +487,13 @@
         let isPaidActive = s.isPaid || false;
         if (s.paidExpiryDate && now > s.paidExpiryDate) isPaidActive = false;
 
+        // ಅಂಗಡಿಯವರು ಅಪ್ಲೋಡ್ ಮಾಡಿರುವ ನಿಜವಾದ ಕ್ಯೂಆರ್ ಕೋಡ್ ಮಾತ್ರ ಕಾಣುವಂತೆ ಮಾಡಲಾಗಿದೆ (ಫೇಕ್ ಇಲ್ಲ)
         let shopQrPhoto = s.qrPhoto || '';
         let qrDisplayHtml = '';
         if (shopQrPhoto) {
           qrDisplayHtml = `<button class="btn btn-success" onclick="openQRModal('${shopQrPhoto}', '${payableToShop}', 'ಅಂಗಡಿ ಮಾಲೀಕ')" style="padding:8px;">ಕ್ಯೂಆರ್ ಕೋಡ್</button>`;
         } else {
-          qrDisplayHtml = `<span style="font-size:0.75rem; color:#d32f2f; font-weight:bold;">ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>`;
+          qrDisplayHtml = `<span style="font-size:0.75rem; color:#d32f2f; font-weight:bold;">ಅಂಗಡಿಯವರು ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>`;
         }
 
         return `
@@ -491,6 +506,13 @@
                 <b>ID: ${s.id}</b> | ಸ್ಥಳ: ${s.taluk}, ${s.district}
               </div>
             </div>
+
+            <!-- ಅಂಗಡಿಯವರ 4-ಡಿಜಿಟ್ ಐಡಿ ಹಾಕಿ ಪ್ರಾಡಕ್ಟ್ ನೋಡುವ ಆಪ್ಷನ್ -->
+            <div style="background:#fff3e0; padding:8px; border-radius:6px; margin:6px 0; display:flex; gap:6px; align-items:center;">
+              <input type="text" id="checkShopIdInput_${s.id}" value="${s.id}" placeholder="ಅಂಗಡಿ ID" style="padding:4px; font-size:0.8rem; width:80px; text-align:center; border:1px solid #ccc; border-radius:4px;">
+              <button class="btn btn-primary" onclick="openShopProducts('${s.id}')" style="padding:5px 10px; font-size:0.75rem;">ಈ ಅಂಗಡಿಯ ವಸ್ತುಗಳನ್ನು ನೋಡಿ</button>
+            </div>
+
             <div style="background:#e8f4fd; padding:8px; border-radius:6px; margin:6px 0; font-size:0.78rem; line-height:1.4;">
               📊 <b>ಲೆಕ್ಕಾಚಾರ:</b><br>
               • ಒಟ್ಟು ಮಾರಾಟ: ₹${grossEarnings} (ರಿಟರ್ನ್ ಕಡಿತ: -₹${returnDeduction})<br>
@@ -513,6 +535,31 @@
           </div>
         `;
       }).join('');
+    }
+
+    function openShopProducts(shopId) {
+      let filteredProds = allProducts.filter(p => String(p.shopId) === String(shopId));
+      let container = document.getElementById('shopProductsListContainer');
+      document.getElementById('shopProductsModalTitle').innerText = `ಅಂಗಡಿ ID (${shopId}) ರ ಪ್ರಾಡಕ್ಟ್‌ಗಳು (${filteredProds.length})`;
+
+      if (filteredProds.length === 0) {
+        container.innerHTML = '<p style="color:#777; text-align:center; padding:15px;">ಈ ಅಂಗಡಿಯಲ್ಲಿ ಯಾವುದೇ ಪ್ರಾಡಕ್ಟ್‌ಗಳಿಲ್ಲ.</p>';
+      } else {
+        container.innerHTML = filteredProds.map(p => `
+          <div style="display:flex; gap:8px; align-items:center; border-bottom:1px solid #eee; padding:6px 0;">
+            <img src="${p.photo || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; object-fit:contain; border-radius:4px; border:1px solid #ddd;">
+            <div style="flex:1;">
+              <div style="font-weight:bold; font-size:0.8rem;">${p.name}</div>
+              <div style="font-size:0.75rem; color:#2e7d32; font-weight:bold;">₹${p.price}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+      document.getElementById('shopProductsModal').style.display = 'flex';
+    }
+
+    function closeShopProductsModal() {
+      document.getElementById('shopProductsModal').style.display = 'none';
     }
 
     async function toggleShopPayment(docId, currentStatus) {
@@ -570,7 +617,8 @@
           }
         });
 
-        let dboyQrPhoto = db.qrPhoto || '';
+        // ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ಹಾಕಿರುವ ಕ್ಯೂಆರ್ ಕೋಡ್ ಮಾತ್ರ ಕಾಣುವಂತೆ ಮಾಡಲಾಗಿದೆ
+        let dboyQrPhoto = db.customQrPhoto || db.qrPhoto || '';
         let qrDisplayHtml = '';
         if (dboyQrPhoto) {
           qrDisplayHtml = `<button class="btn btn-success" onclick="openQRModal('${dboyQrPhoto}', '${totalDboyEarnings}', 'ಡೆಲಿವರಿ ಬಾಯ್')" style="padding:8px;">ಕ್ಯೂಆರ್ ಕೋಡ್</button>`;
@@ -680,11 +728,14 @@
         let shopObj = allShops.find(s => s.id === o.shopId);
         let shopQrPhoto = shopObj && shopObj.qrPhoto ? shopObj.qrPhoto : '';
 
+        // ರಿಟರ್ನ್ ಮಾಡಿದಾಗ ಗ್ರಾಹಕರು ಹಾಕಿರುವ ಕ್ಯೂಆರ್ ಕೋಡ್ ಅಥವಾ ಅಂಗಡಿಯವರ ಕ್ಯೂಆರ್ ಕೋಡ್ ಮಾತ್ರ ಕಾಣುವಂತೆ ಮಾಡಲಾಗಿದೆ
         let qrDisplayHtml = '';
-        if (shopQrPhoto) {
-          qrDisplayHtml = `<button class="btn btn-success" onclick="openQRModal('${shopQrPhoto}', '${o.totalPrice}', 'ರಿಟರ್ನ್ ಗ್ರಾಹಕ')" style="padding:8px;">ಕ್ಯೂಆರ್ ಕೋಡ್</button>`;
+        if (o.customerQrPhoto) {
+          qrDisplayHtml = `<button class="btn btn-success" onclick="openQRModal('${o.customerQrPhoto}', '${o.totalPrice}', 'ಗ್ರಾಹಕರ ರಿಟರ್ನ್')" style="padding:8px;">ಗ್ರಾಹಕರ ಕ್ಯೂಆರ್ ಕೋಡ್</button>`;
+        } else if (shopQrPhoto) {
+          qrDisplayHtml = `<button class="btn btn-success" onclick="openQRModal('${shopQrPhoto}', '${o.totalPrice}', 'ಅಂಗಡಿ ರಿಟರ್ನ್')" style="padding:8px;">ಅಂಗಡಿ ಕ್ಯೂಆರ್ ಕೋಡ್</button>`;
         } else {
-          qrDisplayHtml = `<span style="font-size:0.75rem; color:#d32f2f; font-weight:bold;">ಅಂಗಡಿಯವರು ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>`;
+          qrDisplayHtml = `<span style="font-size:0.75rem; color:#d32f2f; font-weight:bold;">ಯಾವ ಕ್ಯೂಆರ್ ಕೋಡ್ ಅಪ್ಲೋಡ್ ಮಾಡಿಲ್ಲ</span>`;
         }
 
         return `
@@ -699,7 +750,7 @@
             </div>
 
             <div style="margin-top:8px; background:#fff3e0; padding:8px; border-radius:6px; font-size:0.78rem;">
-              <p><b>ಸ್ಥಿತಿ:</b> ರಿಟರ್ನ್ ಆರ್ಡರ್ ಪೇಮೆಂಟ್ ಬಾಕಿ ಇದೆ (ಮೈನಸ್ ಹಣ).</p>
+              <p><b>ಸ್ಥಿತಿ:</b> ರಿಟರ್ನ್ ಆರ್ಡರ್ ಪೇಮೆಂಟ್ ಬಾಕಿ ಇದೆ (ರೂ.80 ಡೆಲಿವರಿ ಹಾಗೂ ರಿಟರ್ನ್ ಚಾರ್ಜ್ ಮೈನಸ್ ಆಗಿ ಉಳಿದ ಹಣ ಪಾವತಿಸಬೇಕು).</p>
               <div style="margin-top:6px; display:flex; gap:6px; align-items:center;">
                 ${qrDisplayHtml}
               </div>
