@@ -47,6 +47,28 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background-color: var(--bg); color: var(--dark); padding: 10px; padding-bottom: 40px; }
 
+    /* Splash Screen Styling with 2 Seconds Glow Animation */
+    #splashScreen {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: linear-gradient(-45deg, #e65100, #ff6d00, #1976d2, #388e3c);
+      background-size: 400% 400%; animation: gradientBG 4s ease infinite;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 99999; transition: opacity 0.6s ease, visibility 0.6s;
+    }
+    @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+    .splash-logo-box {
+      width: 160px; height: 160px; border-radius: 50%; padding: 8px;
+      background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 25px rgba(255,255,255,0.9);
+      animation: pulseGlow 1s infinite alternate, zoomIn 0.8s ease-out;
+      display: flex; justify-content: center; align-items: center;
+    }
+    .splash-logo-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 3px solid #fff; }
+    @keyframes pulseGlow { 0% { transform: scale(0.95); box-shadow: 0 0 15px rgba(255,255,255,0.6); } 100% { transform: scale(1.08); box-shadow: 0 0 40px rgba(255,255,255,1), 0 0 60px rgba(255,215,0,0.8); } }
+    @keyframes zoomIn { 0% { opacity: 0; transform: scale(0.4); } 100% { opacity: 1; transform: scale(1); } }
+    .splash-text { color: #ffffff; margin-top: 20px; font-size: 1.3rem; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.4); text-align: center; }
+
     .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
     header { background: var(--primary); color: white; padding: 12px; text-align: center; border-radius: 8px; margin-bottom: 12px; position: relative; display: flex; align-items: center; justify-content: space-between; }
     
@@ -87,6 +109,14 @@
   </style>
 </head>
 <body>
+
+  <!-- Splash Screen with 2 Seconds Glow Animation -->
+  <div id="splashScreen">
+    <div class="splash-logo-box">
+      <img src="AR_Taxi_Booking_Go_Fast_512x512.png" alt="Logo" onerror="this.src='https://via.placeholder.com/160/1e88e5/ffffff?text=MASTER'">
+    </div>
+    <div class="splash-text">👑 ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್</div>
+  </div>
 
   <!-- Secure Password Overlay -->
   <div id="authOverlay">
@@ -206,6 +236,13 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      // 2 Seconds Splash Screen Timer
+      setTimeout(() => {
+        const splash = document.getElementById('splashScreen');
+        splash.style.opacity = '0';
+        setTimeout(() => { splash.style.display = 'none'; }, 600);
+      }, 2000);
+
       window.history.pushState({ page: 'master' }, '', '');
       window.addEventListener('popstate', () => { window.history.pushState({ page: 'master' }, '', ''); });
       loadInstappStatus();
@@ -436,9 +473,13 @@
         let isPaidActive = s.isPaid || false;
         if (s.paidExpiryDate && now > s.paidExpiryDate) isPaidActive = false;
 
-        let shopUpi = s.upiId || 'merchant@upi';
-        let upiLink = `upi://pay?pa=${shopUpi}&pn=${encodeURIComponent(s.shopName)}&am=${payableToShop}&cu=INR`;
-        let qrCodeImg = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiLink)}`;
+        let shopQrPhoto = s.qrPhoto || '';
+        let qrDisplayHtml = '';
+        if (shopQrPhoto) {
+          qrDisplayHtml = `<button class="btn btn-success" onclick="openQRModal('${shopQrPhoto}', '${payableToShop}', 'ಅಂಗಡಿ ಮಾಲೀಕ')" style="padding:8px;">ಕ್ಯೂಆರ್ ಕೋಡ್</button>`;
+        } else {
+          qrDisplayHtml = `<span style="font-size:0.75rem; color:#d32f2f; font-weight:bold;">ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>`;
+        }
 
         return `
           <div class="card-box">
@@ -457,8 +498,7 @@
             </div>
 
             <div style="margin-top:6px; display:flex; gap:6px; align-items:center;">
-              <a href="${upiLink}" class="btn btn-upi" style="flex:1; padding:8px;">📱 ಪೇಮೆಂಟ್ ಮಾಡಿ (₹${payableToShop})</a>
-              <button class="btn btn-success" onclick="openQRModal('${qrCodeImg}', '${payableToShop}', 'ಅಂಗಡಿ ಮಾಲೀಕ')" style="padding:8px;">ಕ್ಯೂಆರ್ ಕೋಡ್</button>
+              ${qrDisplayHtml}
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
@@ -530,9 +570,13 @@
           }
         });
 
-        let dboyUpi = db.upiId || 'delivery@upi';
-        let upiLink = `upi://pay?pa=${dboyUpi}&pn=${encodeURIComponent(db.name)}&am=${totalDboyEarnings}&cu=INR`;
-        let qrCodeImg = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiLink)}`;
+        let dboyQrPhoto = db.qrPhoto || '';
+        let qrDisplayHtml = '';
+        if (dboyQrPhoto) {
+          qrDisplayHtml = `<button class="btn btn-success" onclick="openQRModal('${dboyQrPhoto}', '${totalDboyEarnings}', 'ಡೆಲಿವರಿ ಬಾಯ್')" style="padding:8px;">ಕ್ಯೂಆರ್ ಕೋಡ್</button>`;
+        } else {
+          qrDisplayHtml = `<span style="font-size:0.75rem; color:#d32f2f; font-weight:bold;">ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>`;
+        }
 
         return `
           <div class="card-box">
@@ -549,8 +593,7 @@
             </div>
 
             <div style="margin-top:8px; display:flex; gap:6px; align-items:center;">
-              <a href="${upiLink}" class="btn btn-upi" style="flex:1; padding:8px;">📱 ಪೇಮೆಂಟ್ ಮಾಡಿ (₹${totalDboyEarnings})</a>
-              <button class="btn btn-success" onclick="openQRModal('${qrCodeImg}', '${totalDboyEarnings}', 'ಡೆಲಿವರಿ ಬಾಯ್')" style="padding:8px;">ಕ್ಯೂಆರ್ ಕೋಡ್</button>
+              ${qrDisplayHtml}
             </div>
 
             <div style="text-align:right; margin-top:6px;">
@@ -634,8 +677,15 @@
 
       container.innerHTML = returnOrders.map(o => {
         let isPaymentSuccess = o.returnPaymentStatus === 'SUCCESS';
-        let upiLink = `upi://pay?pa=merchant@upi&pn=NamahShapur&am=${o.totalPrice}&cu=INR`;
-        let qrCodeImg = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiLink)}`;
+        let shopObj = allShops.find(s => s.id === o.shopId);
+        let shopQrPhoto = shopObj && shopObj.qrPhoto ? shopObj.qrPhoto : '';
+
+        let qrDisplayHtml = '';
+        if (shopQrPhoto) {
+          qrDisplayHtml = `<button class="btn btn-success" onclick="openQRModal('${shopQrPhoto}', '${o.totalPrice}', 'ರಿಟರ್ನ್ ಗ್ರಾಹಕ')" style="padding:8px;">ಕ್ಯೂಆರ್ ಕೋಡ್</button>`;
+        } else {
+          qrDisplayHtml = `<span style="font-size:0.75rem; color:#d32f2f; font-weight:bold;">ಅಂಗಡಿಯವರು ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>`;
+        }
 
         return `
           <div class="card-box" style="border-left: 4px solid #d32f2f;">
@@ -649,10 +699,9 @@
             </div>
 
             <div style="margin-top:8px; background:#fff3e0; padding:8px; border-radius:6px; font-size:0.78rem;">
-              <p><b>ಸ್ಥಿತಿ:</b> ರಿಟರ್ನ್ ಆರ್ಡರ್ ಪೇಮೆಂಟ್ ಬಾಕಿ ಇದೆ.</p>
+              <p><b>ಸ್ಥಿತಿ:</b> ರಿಟರ್ನ್ ಆರ್ಡರ್ ಪೇಮೆಂಟ್ ಬಾಕಿ ಇದೆ (ಮೈನಸ್ ಹಣ).</p>
               <div style="margin-top:6px; display:flex; gap:6px; align-items:center;">
-                <a href="${upiLink}" class="btn btn-upi" style="flex:1; padding:8px;">📱 ರಿಟರ್ನ್ ಪೇಮೆಂಟ್ ಮಾಡಿ (₹${o.totalPrice})</a>
-                <button class="btn btn-success" onclick="openQRModal('${qrCodeImg}', '${o.totalPrice}', 'ರಿಟರ್ನ್ ಗ್ರಾಹಕ')" style="padding:8px;">ಕ್ಯೂಆರ್ ಕೋಡ್</button>
+                ${qrDisplayHtml}
               </div>
             </div>
 
@@ -686,8 +735,10 @@
     function openQRModal(qrImgSrc, price, type) {
       document.getElementById('modalTitle').innerText = `${type} ಪಾವತಿ ಕ್ಯೂಆರ್ ಕೋಡ್ (₹${price})`;
       document.getElementById('modalBodyContent').innerHTML = `
-        <p style="font-size:0.8rem; margin-bottom:6px;">ಫೋನ್‌ಪೇ ಅಥವಾ ಗೂಗಲ್ ಪೇ ಮೂಲಕ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಪಾವತಿಸಿ:</p>
-        <img src="${qrImgSrc}" style="width:160px; height:160px; margin:10px auto; display:block; border:1px solid #ccc; border-radius:6px;">
+        <p style="font-size:0.8rem; margin-bottom:6px;">ಕ್ಯೂಆರ್ ಕೋಡ್ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ ಅಥವಾ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಪಾವತಿಸಿ (₹${price}):</p>
+        <a href="${qrImgSrc}" target="_blank">
+          <img src="${qrImgSrc}" style="width:220px; height:220px; margin:10px auto; display:block; border:2px solid #1e88e5; border-radius:8px; cursor:pointer;" title="ದೊಡ್ಡದಾಗಿ ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ">
+        </a>
       `;
       document.getElementById('downloadLink').href = qrImgSrc;
       document.getElementById('imageModal').style.display = 'flex';
