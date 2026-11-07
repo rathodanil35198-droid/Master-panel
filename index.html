@@ -102,7 +102,9 @@
     .btn-success { background: var(--success); }
     .btn-primary { background: var(--secondary); }
 
-    .banner-preview-img { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 6px; border: 1px solid #ccc; }
+    /* ಜಾಹೀರಾತು ಮತ್ತು ಕ್ಯೂಆರ್ ಫೋಟೋಗಳು ಕಟ್ ಆಗದೆ ಪೂರ್ತಿಯಾಗಿ ಕಾಣಲು object-fit: contain ಅಳವಡಿಸಲಾಗಿದೆ */
+    .banner-preview-img { width: 100%; height: auto; max-height: 250px; object-fit: contain; background: #fff; border-radius: 6px; margin-bottom: 6px; border: 1px solid #ccc; display: block; }
+    
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 10000; padding: 15px; }
     .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 400px; width: 100%; text-align: center; max-height: 90vh; overflow-y: auto; }
   </style>
@@ -132,7 +134,7 @@
     <div class="modal-content">
       <h3 id="modalTitle">ಫೋಟೋ / ಕ್ಯೂಆರ್ ವೀಕ್ಷಣೆ</h3>
       <div id="modalBodyContent">
-        <img id="modalImgSrc" src="" style="width:100%; max-height:250px; object-fit:contain; margin:10px 0; border-radius:6px;">
+        <img id="modalImgSrc" src="" style="width:100%; max-height:350px; object-fit:contain; background:#fff; margin:10px 0; border-radius:6px;">
       </div>
       <div style="display:flex; gap:10px; margin-top:10px;">
         <a id="downloadLink" href="" download="document.jpg" class="btn btn-success" style="flex:1; text-decoration:none; text-align:center; padding:8px;">ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ</a>
@@ -263,7 +265,6 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      // 2 Seconds Splash Screen Timer
       setTimeout(() => {
         const splash = document.getElementById('splashScreen');
         splash.style.opacity = '0';
@@ -403,7 +404,7 @@
       container.innerHTML = list.map(b => `
         <div class="card-box">
           <img src="${b.imageUrl}" class="banner-preview-img" onclick="openImageModal('${b.imageUrl}', 'ಜಾಹೀರಾತು ಬ್ಯಾನರ್')" style="cursor:pointer;" title="ದೊಡ್ಡದಾಗಿ ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ">
-          <div style="text-align:right;">
+          <div style="text-align:right; margin-top:6px;">
             <button class="btn btn-danger" onclick="deleteRecord('master_banners', '${b.docId}', 'ಬ್ಯಾನರ್')">ಡಿಲೀಟ್ ಮಾಡಿ</button>
           </div>
         </div>
@@ -585,7 +586,7 @@
       } else {
         container.innerHTML = filteredProds.map(p => `
           <div style="display:flex; gap:8px; align-items:center; border-bottom:1px solid #eee; padding:6px 0;">
-            <img src="${p.photo || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; object-fit:contain; border-radius:4px; border:1px solid #ddd; cursor:pointer;" onclick="openImageModal('${p.photo}', '${p.name}')">
+            <img src="${p.photo || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; object-fit:contain; background:#fff; border-radius:4px; border:1px solid #ddd; cursor:pointer;" onclick="openImageModal('${p.photo}', '${p.name}')">
             <div style="flex:1;">
               <div style="font-weight:bold; font-size:0.8rem;">${p.name}</div>
               <div style="font-size:0.75rem; color:#2e7d32; font-weight:bold;">₹${p.price}</div>
@@ -641,8 +642,6 @@
 
       container.innerHTML = list.map(db => {
         let deliveredCount = allOrders.filter(o => o.status === 'DELIVERED' || o.status === 'STEP_4').length;
-        
-        // ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ಗಳಿಕೆ ಬಹಳ ಕಮ್ಮಿ ಮತ್ತು ನಿಖರವಾಗಿ (ಪ್ರತಿ ಡೆಲಿವರಿಗೆ ರೂ. 50 ರಂತೆ) ಲೆಕ್ಕಹಾಕಲಾಗಿದೆ
         let totalDboyEarnings = deliveredCount * 50;
 
         let dboyQrPhoto = db.customQrPhoto || db.qrPhoto || '';
@@ -770,7 +769,6 @@
         let shopObj = allShops.find(s => s.id === o.shopId);
         let shopQrPhoto = shopObj && shopObj.qrPhoto ? shopObj.qrPhoto : '';
 
-        // ರಿಟರ್ನ್ ಆರ್ಡರ್‌ನಲ್ಲಿ ರೂ. 80 ಕಡಿತಗೊಳಿಸಿ ಉಳಿದ ಹಣವನ್ನು ಪಾವತಿಸಲು ಗ್ರಾಹಕರ ಅಥವಾ ಅಂಗಡಿಯವರ ಕ್ಯೂಆರ್ ಕೋಡ್ ತೋರಿಸುವುದು
         let qrDisplayHtml = '';
         if (o.customerQrPhoto) {
           qrDisplayHtml = `<button class="btn btn-success" onclick="openQRModal('${o.customerQrPhoto}', '${o.totalPrice}', 'ಗ್ರಾಹಕರ ರಿಟರ್ನ್')" style="padding:8px;">ಗ್ರಾಹಕರ ಕ್ಯೂಆರ್ ಕೋಡ್</button>`;
@@ -783,7 +781,7 @@
         return `
           <div class="card-box" style="border-left: 4px solid #d32f2f;">
             <div style="display:flex; gap:10px; align-items:center;">
-              <img src="${o.productPhoto || 'https://via.placeholder.com/60'}" style="width:55px; height:55px; object-fit:cover; border-radius:6px; cursor:pointer;" onclick="openImageModal('${o.productPhoto}', 'პроಡಕ್ಟ್ ಫೋಟೋ')">
+              <img src="${o.productPhoto || 'https://via.placeholder.com/60'}" style="width:55px; height:55px; object-fit:contain; background:#fff; border-radius:6px; cursor:pointer;" onclick="openImageModal('${o.productPhoto}', 'ಪ್ರಾಡಕ್ಟ್ ಫೋಟೋ')">
               <div>
                 <b>${o.productName}</b> (₹${o.totalPrice})<br>
                 ಗ್ರಾಹಕರು: ${o.customer ? o.customer.name : 'N/A'} (${o.customer ? o.customer.phone : ''})<br>
@@ -800,7 +798,7 @@
 
             <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
               <span style="font-size:0.75rem; font-weight:bold; color:${isPaymentSuccess ? 'var(--success)' : '#d32f2f'};">
-                ${isPaymentSuccess ? '✅ ಪಾವತಿ ಸಕ್ಸಸ್ ಆಗಿದೆ' : '⏳ ಪಾವತಿ ಪೆಂಡಿಂಗ್‌ನಲ್ಲಿದೆ'}
+                ${isPaymentSuccess ? '✅ ಪಾವತಿ ಸಕ್ಸಸ್ ಆಗಿದೆ' : '⏳ ಪೇಮೆಂಟ್ ಪೆಂಡಿಂಗ್‌ನಲ್ಲಿದೆ'}
               </span>
               ${!isPaymentSuccess ? `<button class="btn btn-success" onclick="markReturnPaymentSuccess('${o.id}')">ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಮಾಡಿ</button>` : ''}
             </div>
@@ -820,7 +818,7 @@
 
     function openImageModal(imgSrc, title) {
       document.getElementById('modalTitle').innerText = title;
-      document.getElementById('modalBodyContent').innerHTML = `<img src="${imgSrc}" style="width:100%; max-height:280px; object-fit:contain; margin:10px 0; border-radius:6px;">`;
+      document.getElementById('modalBodyContent').innerHTML = `<img src="${imgSrc}" style="width:100%; max-height:350px; object-fit:contain; background:#fff; margin:10px 0; border-radius:6px;">`;
       document.getElementById('downloadLink').href = imgSrc;
       document.getElementById('imageModal').style.display = 'flex';
     }
@@ -830,7 +828,7 @@
       document.getElementById('modalBodyContent').innerHTML = `
         <p style="font-size:0.8rem; margin-bottom:6px;">ಕ್ಯೂಆರ್ ಕೋಡ್ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ ಅಥವಾ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಪಾವತಿಸಿ (₹${price}):</p>
         <a href="${qrImgSrc}" target="_blank">
-          <img src="${qrImgSrc}" style="width:220px; height:220px; margin:10px auto; display:block; border:2px solid #1e88e5; border-radius:8px; cursor:pointer;" title="ದೊಡ್ಡದಾಗಿ ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ">
+          <img src="${qrImgSrc}" style="width:220px; height:220px; margin:10px auto; display:block; object-fit:contain; background:#fff; border:2px solid #1e88e5; border-radius:8px; cursor:pointer;" title="ದೊಡ್ಡದಾಗಿ ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ">
         </a>
       `;
       document.getElementById('downloadLink').href = qrImgSrc;
