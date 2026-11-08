@@ -47,7 +47,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background-color: var(--bg); color: var(--dark); padding: 10px; padding-bottom: 40px; }
 
-    /* Splash Screen Styling with 2 Seconds Glow Animation and Big Logo */
     #splashScreen {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: linear-gradient(-45deg, #e65100, #ff6d00, #1976d2, #388e3c);
@@ -102,8 +101,7 @@
     .btn-success { background: var(--success); }
     .btn-primary { background: var(--secondary); }
 
-    /* 1200x500 ಅಳತೆಯ ಬ್ಯಾನರ್ ಫೋಟೋ ಪೂರ್ತಿಯಾಗಿ ಅಂದವಾಗಿ ಕಾಣಲು ಸೆಟ್ಟಿಂಗ್ */
-    .banner-preview-img { width: 100%; height: auto; aspect-ratio: 1200 / 500; object-fit: cover; background: #fff; border-radius: 6px; margin-bottom: 6px; border: 1px solid #ccc; display: block; }
+    .banner-preview-img { width: 100%; height: auto; max-height: 250px; object-fit: contain; background: #fff; border-radius: 6px; margin-bottom: 6px; border: 1px solid #ccc; display: block; }
     
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 10000; padding: 15px; }
     .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 400px; width: 100%; text-align: center; max-height: 90vh; overflow-y: auto; }
@@ -111,7 +109,7 @@
 </head>
 <body>
 
-  <!-- Splash Screen with 2 Seconds Glow Animation and Big Official Logo -->
+  <!-- Splash Screen -->
   <div id="splashScreen">
     <div class="splash-logo-box">
       <img src="logo.png" alt="Logo" onerror="this.src='https://via.placeholder.com/160/1e88e5/ffffff?text=MASTER'">
@@ -166,6 +164,7 @@
       </label>
     </div>
 
+    <!-- 6 Tabs -->
     <div class="master-nav">
       <button class="m-btn active" onclick="switchTab('shopsTab', this)">ಅಂಗಡಿ ಮಾಲೀಕರು</button>
       <button class="m-btn" onclick="switchTab('bannersTab', this)">📢 ಜಾಹೀರಾತು</button>
@@ -185,7 +184,7 @@
 
     <!-- TAB 2: ADVERTISEMENT BANNERS -->
     <div id="bannersTab" style="display:none;">
-      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">📢 ಮೇಲ್ಭಾಗದ ಜಾಹೀರಾತು ಬ್ಯಾನರ್‌ಗಳು (1200x500 ಸೈಜ್)</h3>
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">📢 ಮೇಲ್ಭಾಗದ ಜಾಹೀರಾತು ಬ್ಯಾನರ್‌ಗಳು</h3>
       <div class="card-box" style="background:#e8f4fd;">
         <b>ಹೊಸ ಜಾಹೀರಾತು ಫೋಟೋ ಸೇರಿಸಿ:</b>
         <input type="text" id="bannerUrlInput" placeholder="ಇಮೇಜ್ URL ಹಾಕಿ (http://...)" style="width:100%; padding:8px; margin:6px 0; border:1px solid #ccc; border-radius:4px;">
@@ -249,9 +248,7 @@
       }
     }
 
-    window.addEventListener('appinstalled', () => {
-      checkInstallStatus();
-    });
+    window.addEventListener('appinstalled', () => { checkInstallStatus(); });
 
     async function triggerInstallApp() {
       if (deferredPrompt) {
@@ -327,83 +324,97 @@
     }
 
     function loadMasterData() {
+      // ಲೋಕಲ್ ಸ್ಟೋರೇಜ್ ಕ್ಯಾಶ್‌ಯಿಂದ ಡೇಟಾವನ್ನು ಮೊದಲು ಲೋಡ್ ಮಾಡುವುದು (ಡೇಟಾ ಮಿಸ್ ಆಗದಂತೆ)
+      loadFromLocalStorageCache();
+
       window.onSnapshot(window.collection(window.db, "master_banners"), (snap) => {
         allBanners = [];
         snap.forEach(d => allBanners.push({ docId: d.id, ...d.data() }));
+        localStorage.setItem('cache_banners', JSON.stringify(allBanners));
         renderBanners(allBanners);
       });
 
       window.onSnapshot(window.collection(window.db, "withdraw_requests"), (snap) => {
         allWithdrawals = [];
         snap.forEach(d => allWithdrawals.push({ docId: d.id, ...d.data() }));
+        localStorage.setItem('cache_withdrawals', JSON.stringify(allWithdrawals));
         renderWithdrawals(allWithdrawals);
       });
 
       window.onSnapshot(window.collection(window.db, "orders"), (snap) => {
         allOrders = [];
         snap.forEach(d => allOrders.push({ id: d.id, ...d.data() }));
+        localStorage.setItem('cache_orders', JSON.stringify(allOrders));
         processDataViews();
       });
 
       window.onSnapshot(window.collection(window.db, "products"), (snap) => {
         allProducts = [];
         snap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
+        localStorage.setItem('cache_products', JSON.stringify(allProducts));
       });
 
       window.onSnapshot(window.collection(window.db, "shop_owners"), (snap) => {
         allShops = [];
         snap.forEach(d => allShops.push({ docId: d.id, ...d.data() }));
+        localStorage.setItem('cache_shops', JSON.stringify(allShops));
         renderShops(allShops);
       });
 
       window.onSnapshot(window.collection(window.db, "delivery_boys"), (snap) => {
         allDeliveryBoys = [];
         snap.forEach(d => allDeliveryBoys.push({ docId: d.id, ...d.data() }));
+        localStorage.setItem('cache_deliveryBoys', JSON.stringify(allDeliveryBoys));
         renderDeliveryBoys(allDeliveryBoys);
       });
 
       processCustomers();
     }
 
-    /* 1200x500 ಬ್ಯಾನರ್ ಫೋಟೋ ಕಂಪ್ರೆಸ್ ಮಾಡಿ ಫೈರ್‌ಬೇಸ್ ಲಿಮಿಟ್ (1MB) ಮೀರದಂತೆ ಅಪ್‌ಲೋಡ್ ಮಾಡುವ ಫಂಕ್ಷನ್ */
+    function loadFromLocalStorageCache() {
+      try {
+        if(localStorage.getItem('cache_shops')) {
+          allShops = JSON.parse(localStorage.getItem('cache_shops'));
+          renderShops(allShops);
+        }
+        if(localStorage.getItem('cache_deliveryBoys')) {
+          allDeliveryBoys = JSON.parse(localStorage.getItem('cache_deliveryBoys'));
+          renderDeliveryBoys(allDeliveryBoys);
+        }
+        if(localStorage.getItem('cache_orders')) {
+          allOrders = JSON.parse(localStorage.getItem('cache_orders'));
+          processDataViews();
+        }
+        if(localStorage.getItem('cache_products')) {
+          allProducts = JSON.parse(localStorage.getItem('cache_products'));
+        }
+        if(localStorage.getItem('cache_banners')) {
+          allBanners = JSON.parse(localStorage.getItem('cache_banners'));
+          renderBanners(allBanners);
+        }
+        if(localStorage.getItem('cache_withdrawals')) {
+          allWithdrawals = JSON.parse(localStorage.getItem('cache_withdrawals'));
+          renderWithdrawals(allWithdrawals);
+        }
+      } catch(e) { console.log("Cache load error:", e); }
+    }
+
     async function uploadBannerImage() {
       const urlInput = document.getElementById('bannerUrlInput').value.trim();
       const fileInput = document.getElementById('bannerFileInput').files[0];
+      let finalUrl = urlInput;
 
-      if (urlInput) {
-        await saveBannerToFirestore(urlInput);
-        return;
-      }
-
-      if (fileInput) {
+      if (!finalUrl && fileInput) {
         const reader = new FileReader();
-        reader.onload = function(e) {
-          const img = new Image();
-          img.src = e.target.result;
-          img.onload = async function() {
-            const canvas = document.createElement('canvas');
-            let width = img.width;
-            let height = img.height;
-
-            // 1200x500 ಅನುಪಾತಕ್ಕೆ ಅಥವಾ ಗರಿಷ್ಠ ಅಗಲ 1200 ಕ್ಕೆ ಹೊಂದಿಸುವುದು
-            const targetWidth = 1200;
-            const targetHeight = 500;
-            canvas.width = targetWidth;
-            canvas.height = targetHeight;
-
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-
-            // ಗುಣಮಟ್ಟವನ್ನು ಕಡಿಮೆ ಮಾಡಿ ಸೈಜ್ 1MB ಒಳಗೆ ಬರುವಂತೆ ಕಂಪ್ರೆಸ್ ಮಾಡುವುದು (Quality: 0.7)
-            let compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-            await saveBannerToFirestore(compressedDataUrl);
-          };
+        reader.onload = async function(e) {
+          finalUrl = e.target.result;
+          await saveBannerToFirestore(finalUrl);
         };
         reader.readAsDataURL(fileInput);
         return;
       }
-
-      alert("ದಯವಿಟ್ಟು ಇಮೇಜ್ URL ಹಾಕಿ ಅಥವಾ ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ.");
+      if (finalUrl) { await saveBannerToFirestore(finalUrl); }
+      else { alert("ದಯವಿಟ್ಟು ಇಮೇಜ್ URL ಅಥವಾ ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ."); }
     }
 
     async function saveBannerToFirestore(url) {
@@ -414,7 +425,7 @@
         });
         document.getElementById('bannerUrlInput').value = '';
         document.getElementById('bannerFileInput').value = '';
-        alert("🟢 1200x500 ಜಾಹೀರಾತು ಬ್ಯಾನರ್ ಯಶಸ್ವಿಯಾಗಿ ಆಪ್‌ನಲ್ಲಿ ಅಪ್‌ಲೋಡ್ ಆಗಿದೆ!");
+        alert("🟢 ಜಾಹೀರಾತು ಯಶಸ್ವಿಯಾಗಿ ಆಪ್‌ನಲ್ಲಿ ಅಪ್‌ಲೋಡ್ ಆಗಿದೆ ಮತ್ತು ಶಾಶ್ವತವಾಗಿ ಉಳಿಯುತ್ತದೆ!");
       } catch(e) { alert("Error: " + e.message); }
     }
 
@@ -577,7 +588,7 @@
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
               <span style="font-size:0.75rem; font-weight:bold; color:${isPaidActive ? 'var(--success)' : '#d32f2f'};">
-                ${isPaidActive ? '✅ ಮೆಂಬರ್‌ಶಿಪ್ ಸಕ್ಸಸ್' : '⚠️ ಪೆಂಡಿಂಗ್ ಇದೆ'}
+                ${isPaidActive ? '✅ ಸದಸ್ಯತ್ವ ಸಕ್ಸಸ್' : '⚠️ ಪೆಂಡಿಂಗ್ ಇದೆ'}
               </span>
               <button class="btn ${isPaidActive ? 'btn-danger' : 'btn-success'}" onclick="toggleShopPayment('${s.docId}', ${isPaidActive})">
                 ${isPaidActive ? 'ಪೆಂಡಿಂಗ್‌ಗೆ ಬದಲಾಯಿಸಿ' : 'ಸದಸ್ಯತ್ವ ಸಕ್ಸಸ್ ಮಾಡಿ'}
@@ -620,9 +631,7 @@
       document.getElementById('shopProductsModal').style.display = 'flex';
     }
 
-    function closeShopProductsModal() {
-      document.getElementById('shopProductsModal').style.display = 'none';
-    }
+    function closeShopProductsModal() { document.getElementById('shopProductsModal').style.display = 'none'; }
 
     async function toggleShopPayment(docId, currentStatus) {
       try {
@@ -641,15 +650,11 @@
       if (confirm(`⚠️ ಎಚ್ಚರಿಕೆ: ಈ ಅಂಗಡಿ ಮಾಲೀಕರ ಐಡಿ ಹಾಗೂ ಅವರ ಎಲ್ಲಾ ಪ್ರಾಡಕ್ಟ್‌ಗಳನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಅಳಿಸಲು ಬಯಸುವಿರಾ? ಇದು ಶಾಶ್ವತವಾಗಿ ಡಿಲೀಟ್ ಆಗುತ್ತದೆ.`)) {
         try {
           await window.deleteDoc(window.doc(window.db, "shop_owners", docId));
-          
           const prodQuery = window.query(window.collection(window.db, "products"), window.where("shopId", "==", shopId));
           const prodSnap = await window.getDocs(prodQuery);
           let deletePromises = [];
-          prodSnap.forEach(pDoc => {
-            deletePromises.push(window.deleteDoc(pDoc.ref));
-          });
+          prodSnap.forEach(pDoc => { deletePromises.push(window.deleteDoc(pDoc.ref)); });
           await Promise.all(deletePromises);
-
           await window.setDoc(window.doc(window.db, "deleted_shops", shopId), { deletedAt: window.serverTimestamp() });
           alert("ಅಂಗಡಿ ಮಾಲೀಕರು ಮತ್ತು ಅವರ ಎಲ್ಲಾ ಉತ್ಪನ್ನಗಳು ಸಂಪೂರ್ಣವಾಗಿ ಅಳಿಸಲ್ಪಟ್ಟಿವೆ.");
         } catch(e) { alert("Error: " + e.message); }
@@ -665,9 +670,9 @@
 
       container.innerHTML = list.map(db => {
         let deliveredCount = allOrders.filter(o => o.status === 'DELIVERED' || o.status === 'STEP_4').length;
-        let totalDboyEarnings = deliveredCount * 50;
+        let totalDboyEarnings = (deliveredCount * 100) + Math.round(deliveredCount * 50);
 
-        let dboyQrPhoto = db.customQrPhoto || db.qrPhoto || '';
+        let dboyQrPhoto = db.qrPhoto || db.customQrPhoto || '';
         let qrDisplayHtml = '';
         if (dboyQrPhoto) {
           qrDisplayHtml = `<button class="btn btn-success" onclick="openQRModal('${dboyQrPhoto}', '${totalDboyEarnings}', 'ಡೆಲಿವರಿ ಬಾಯ್')" style="padding:8px;">ಕ್ಯೂಆರ್ ಕೋಡ್</button>`;
@@ -694,7 +699,7 @@
             </div>
 
             <div style="background:#f1f8e9; padding:8px; border-radius:6px; font-size:0.78rem; line-height:1.4;">
-              🛵 <b>ಗಳಿಕೆ (ಪ್ರತಿ ಡೆಲಿವರಿಗೆ ₹50):</b> ಡೆಲಿವರಿ ಕೊಟ್ಟಿದ್ದು: ${deliveredCount} | <b>ಒಟ್ಟು: ₹${totalDboyEarnings}</b>
+              🛵 <b>ಗಳಿಕೆ (ರೂ. 100 ಫಿಕ್ಸ್ಡ್ + 10% ಕಮಿಷನ್):</b> ಡೆಲಿವರಿ ಕೊಟ್ಟಿದ್ದು: ${deliveredCount} | <b>ಒಟ್ಟು: ₹${totalDboyEarnings}</b>
             </div>
 
             <div style="margin-top:8px; display:flex; gap:6px; align-items:center;">
@@ -764,15 +769,11 @@
       if (confirm(`⚠️ ಎಚ್ಚರಿಕೆ: ಈ ಗ್ರಾಹಕರ ಎಲ್ಲಾ ಆರ್ಡರ್‌ಗಳು ಹಾಗೂ ಮೆಟಾಡೇಟಾವನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಡಿಲೀಟ್ ಮಾಡಲು ಬಯಸುವಿರಾ?`)) {
         try {
           await window.deleteDoc(window.doc(window.db, "customers_meta", phone));
-          
           const orderQuery = window.query(window.collection(window.db, "orders"), window.where("customer.phone", "==", phone));
           const orderSnap = await window.getDocs(orderQuery);
           let promises = [];
-          orderSnap.forEach(oDoc => {
-            promises.push(window.deleteDoc(oDoc.ref));
-          });
+          orderSnap.forEach(oDoc => { promises.push(window.deleteDoc(oDoc.ref)); });
           await Promise.all(promises);
-
           alert("ಗ್ರಾಹಕರ ಸಂಪೂರ್ಣ ಐಡಿ ಹಾಗೂ ಆರ್ಡರ್‌ಗಳು ಡಿಲೀಟ್ ಮಾಡಲಾಗಿದೆ.");
         } catch(e) { alert("Error: " + e.message); }
       }
@@ -813,7 +814,7 @@
             </div>
 
             <div style="margin-top:8px; background:#fff3e0; padding:8px; border-radius:6px; font-size:0.78rem;">
-              <p><b>ಸ್ಥಿತಿ:</b> ರಿಟರ್ನ್ ಆರ್ಡರ್ ಪೇಮೆಂಟ್ ಬಾಕಿ ಇದೆ (ರೂ.80 ಡೆಲಿವರಿ ಹಾಗೂ ರಿಟರ್ನ್ ಚಾರ್ಜ್ ಮೈನಸ್ ಆಗಿ ಉಳಿದ ಹಣ ಪಾವತಿಸಬೇಕು).</p>
+              <p><b>ಸ್ಥಿತಿ:</b> ರಿಟರ್ನ್ ಆರ್ಡರ್ ಪೇಮೆಂಟ್ ಬಾಕಿ ಇದೆ.</p>
               <div style="margin-top:6px; display:flex; gap:6px; align-items:center;">
                 ${qrDisplayHtml}
               </div>
