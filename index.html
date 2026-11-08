@@ -3,7 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್ | Master Panel</title>
+  
+  <!-- SEO & Search Engine Keywords (ಕನ್ನಡ ಮತ್ತು ಇಂಗ್ಲಿಷ್ ಸರ್ಚ್ ಕೀಲಿಮಣೆಗಳು) -->
+  <title id="masterPageTitle">ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್ - ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಲಾನ್ ಯಾಪ್ | Namma Ooru Shopping Master Panel App</title>
+  <meta name="description" content="ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಲಾನ್ ಯಾಪ್, ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಬ್ಯಾನರ್ ಯಾಪ್, ಮಾಸ್ಟರ್ ಫೈನಲ್ ಐಡಿ ಆ್ಯಪ್, ಅನಿಲ್ ಮಾಸ್ಟರ್ ಯಾಪ್. ಅಂಗಡಿಗಳು ಹಾಗೂ ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ನಿರ್ವಹಿಸುವ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್.">
+  <meta name="keywords" content="ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಲಾನ್ ಯಾಪ್, ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಬ್ಯಾನರ್ ಯಾಪ್, ಮಾಸ್ಟರ್ ಫೈನಲ್ ಐಡಿ ಆ್ಯಪ್, ಅನಿಲ್ ಮಾಸ್ಟರ್ ಯಾಪ್, Namma Ooru Shopping Master Panel, Shopping Master Banner App, Anil Master App Shahapur">
+
+  <!-- Google Search Console Verification Meta Tag -->
+  <meta name="google-site-verification" content="ZgEiG1KeQR2v__zpU2O3CpOBqjORyCDkBn5yInF902c" />
+
   <link rel="icon" type="image/png" sizes="192x192" href="logo.png">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#e65100">
@@ -324,7 +332,6 @@
     }
 
     function loadMasterData() {
-      // ಲೋಕಲ್ ಸ್ಟೋರೇಜ್ ಕ್ಯಾಶ್‌ಯಿಂದ ಡೇಟಾವನ್ನು ಮೊದಲು ಲೋಡ್ ಮಾಡುವುದು (ಡೇಟಾ ಮಿಸ್ ಆಗದಂತೆ)
       loadFromLocalStorageCache();
 
       window.onSnapshot(window.collection(window.db, "master_banners"), (snap) => {
