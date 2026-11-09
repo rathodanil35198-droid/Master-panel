@@ -151,15 +151,6 @@
     </div>
   </div>
 
-  <!-- Shop Products View Modal -->
-  <div id="shopProductsModal" class="modal">
-    <div class="modal-content" style="text-align:left;">
-      <h3 id="shopProductsModalTitle" style="color:var(--primary); margin-bottom:8px; font-size:1rem;">ಅಂಗಡಿಯ ಪ್ರಾಡಕ್ಟ್‌ಗಳು</h3>
-      <div id="shopProductsListContainer" style="max-height:300px; overflow-y:auto; margin-bottom:10px;"></div>
-      <button class="btn btn-danger" style="width:100%;" onclick="closeShopProductsModal()">ಮುಚ್ಚಿ</button>
-    </div>
-  </div>
-
   <div class="container">
     <header>
       <h2 style="font-size: 1.1rem;">👑 ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್</h2>
@@ -342,96 +333,38 @@
     }
 
     function loadMasterData() {
-      loadFromLocalStorageCache();
-
       window.onSnapshot(window.collection(window.db, "master_banners"), (snap) => {
         allBanners = [];
         snap.forEach(d => allBanners.push({ docId: d.id, ...d.data() }));
-        localStorage.setItem('cache_banners', JSON.stringify(allBanners));
         renderBanners(allBanners);
       });
 
       window.onSnapshot(window.collection(window.db, "withdraw_requests"), (snap) => {
         allWithdrawals = [];
         snap.forEach(d => allWithdrawals.push({ docId: d.id, ...d.data() }));
-        localStorage.setItem('cache_withdrawals', JSON.stringify(allWithdrawals));
         renderWithdrawals(allWithdrawals);
       });
 
       window.onSnapshot(window.collection(window.db, "orders"), (snap) => {
         allOrders = [];
-        const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-        
-        snap.forEach(d => {
-          let oData = d.data();
-          let orderTime = oData.createdAt ? oData.createdAt.toMillis() : (oData.timestamp || Date.now());
-          
-          if ((oData.status === 'DELIVERED' || oData.status === 'RETURNED') && orderTime < thirtyDaysAgo) {
-            return;
-          }
-          
-          allOrders.push({ id: d.id, ...oData });
-        });
-
-        allOrders.sort((a, b) => {
-          let timeA = a.createdAt ? a.createdAt.toMillis() : (a.timestamp || 0);
-          let timeB = b.createdAt ? b.createdAt.toMillis() : (b.timestamp || 0);
-          return timeB - timeA;
-        });
-
-        localStorage.setItem('cache_orders', JSON.stringify(allOrders));
+        snap.forEach(d => allOrders.push({ id: d.id, ...d.data() }));
+        allOrders.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         processDataViews();
-      });
-
-      window.onSnapshot(window.collection(window.db, "products"), (snap) => {
-        allProducts = [];
-        snap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
-        localStorage.setItem('cache_products', JSON.stringify(allProducts));
       });
 
       window.onSnapshot(window.collection(window.db, "shop_owners"), (snap) => {
         allShops = [];
         snap.forEach(d => allShops.push({ docId: d.id, ...d.data() }));
-        localStorage.setItem('cache_shops', JSON.stringify(allShops));
         renderShops(allShops);
       });
 
       window.onSnapshot(window.collection(window.db, "delivery_boys"), (snap) => {
         allDeliveryBoys = [];
         snap.forEach(d => allDeliveryBoys.push({ docId: d.id, ...d.data() }));
-        localStorage.setItem('cache_deliveryBoys', JSON.stringify(allDeliveryBoys));
         renderDeliveryBoys(allDeliveryBoys);
       });
 
       processCustomers();
-    }
-
-    function loadFromLocalStorageCache() {
-      try {
-        if(localStorage.getItem('cache_shops')) {
-          allShops = JSON.parse(localStorage.getItem('cache_shops'));
-          renderShops(allShops);
-        }
-        if(localStorage.getItem('cache_deliveryBoys')) {
-          allDeliveryBoys = JSON.parse(localStorage.getItem('cache_deliveryBoys'));
-          renderDeliveryBoys(allDeliveryBoys);
-        }
-        if(localStorage.getItem('cache_orders')) {
-          allOrders = JSON.parse(localStorage.getItem('cache_orders'));
-          processDataViews();
-        }
-        if(localStorage.getItem('cache_products')) {
-          allProducts = JSON.parse(localStorage.getItem('cache_products'));
-        }
-        if(localStorage.getItem('cache_banners')) {
-          allBanners = JSON.parse(localStorage.getItem('cache_banners'));
-          renderBanners(allBanners);
-        }
-        if(localStorage.getItem('cache_withdrawals')) {
-          allWithdrawals = JSON.parse(localStorage.getItem('cache_withdrawals'));
-          renderWithdrawals(allWithdrawals);
-        }
-      } catch(e) { console.log("Cache load error:", e); }
     }
 
     function processDataViews() {
@@ -451,201 +384,88 @@
       }
 
       container.innerHTML = list.map(o => {
-        let deliveryMode = o.deliveryMode || 'LOCAL';
-        let status = o.status || 'PENDING';
-        let isCourier = deliveryMode === 'COURIER';
+        let status = o.status || 'CONFIRMED';
+        let isPickedUpByDboy = o.isPickedUp === true || status === 'PICKED_UP_BY_DBOY';
+        let deliveryMode = o.deliveryMode || ''; 
         let trackingId = o.trackingId || '';
 
-        let isStep1 = true;
-        let isStep2 = status === 'PACKED' || status === 'PICKED_UP_BY_DBOY' || status === 'OUT_FOR_DELIVERY' || status === 'DELIVERED';
-        let isStep3 = status === 'PICKED_UP_BY_DBOY' || status === 'OUT_FOR_DELIVERY' || status === 'DELIVERED';
-        let isStep4 = status === 'DELIVERED';
+        // ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್ ಮಾಡಿದ ತಕ್ಷಣ 'ಕನ್ನಡದಲ್ಲಿ ಹೊಸ ಆರ್ಡರ್ ಬಂದಿದೆ ಅಪ್ಡೇಟ್ ಮಾಡಿ' ಬಟನ್/ಬಾಕ್ಸ್ ಕಾಣಿಸುವುದು
+        let updateNeededHtml = '';
+        if (isPickedUpByDboy && !deliveryMode) {
+          updateNeededHtml = `
+            <div style="background:#e8f5e9; border:2px solid #388e3c; padding:10px; border-radius:6px; margin:8px 0;">
+              <span style="color:#2e7d32; font-weight:bold; font-size:0.85rem;">🔔 ಕನ್ನಡದಲ್ಲಿ ಹೊಸ ಆರ್ಡರ್ ಬಂದಿದೆ ಅಪ್ಡೇಟ್ ಮಾಡಿ:</span>
+              <p style="font-size:0.75rem; color:#444; margin-top:2px;">ಡೆಲಿವರಿ ಬಾಯ್ ವಸ್ತುವನ್ನು ಪಿಕ್-ಅಪ್ ಮಾಡಿದ್ದಾರೆ. ಇದನ್ನು ಗ್ರಾಹಕರಿಗೆ ತಲುಪಿಸಲು ಮೋಡ್ ಆಯ್ಕೆಮಾಡಿ:</p>
+              
+              <select id="modeSelect_${o.id}" style="width:100%; padding:8px; margin-top:6px; border:1px solid #388e3c; border-radius:4px; font-weight:bold;">
+                <option value="LOCAL">🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ ಬಾಯ್ ಮೂಲಕ ಕಳುಹಿಸಿ (OTP ತೋರಿಸಿ)</option>
+                <option value="COURIER">✈️ DTDC ಕೊರಿಯರ್ ಮೂಲಕ ಕಳುಹಿಸಿ (ಲೈವ್ ಟ್ರ್ಯಾಕಿಂಗ್)</option>
+              </select>
+              
+              <button class="btn btn-success" style="width:100%; margin-top:6px; padding:8px;" onclick="confirmDeliveryMode('${o.id}')">
+                ✔ ಮೋಡ್ ಖಚಿತಪಡಿಸಿ ಕಳುಹಿಸಿ
+              </button>
+            </div>
+          `;
+        }
 
-        let custPhone = o.customer ? o.customer.phone : '';
-        let lat = o.customer && o.customer.lat ? o.customer.lat : '16.7389';
-        let lon = o.customer && o.customer.lon ? o.customer.lon : '76.7976';
-
-        let returnTagHtml = '';
-        if (o.isReturned || status === 'RETURNED' || status === 'RETURN_REQUESTED') {
-          returnTagHtml = `<div style="background:#ffebee; color:#c62828; padding:6px; border-radius:4px; margin-bottom:6px; font-weight:bold; font-size:0.75rem;">🔄 ರಿಟರ್ನ್ ವಿನಂತಿ ಬಂದಿದೆ</div>`;
+        let modeDetailsHtml = '';
+        if (deliveryMode === 'LOCAL') {
+          modeDetailsHtml = `
+            <div style="background:#e3f2fd; padding:8px; border-radius:6px; margin:6px 0; text-align:center;">
+              <span style="font-size:0.8rem; color:#1565c0; font-weight:bold;">🔑 ಲೋಕಲ್ ಡೆಲಿವರಿ ಒಟಿಪಿ (ಗ್ರಾಹಕರಿಗೆ ಮಾತ್ರ ಗೋಚರಿಸುತ್ತದೆ):</span>
+              <div style="font-size:1.3rem; font-weight:bold; color:#0d47a1; margin-top:2px;">${o.deliveryOtp || '8740'}</div>
+            </div>
+          `;
+        } else if (deliveryMode === 'COURIER') {
+          modeDetailsHtml = `
+            <div style="background:#fff3e0; padding:8px; border-radius:6px; margin:6px 0;">
+              <span style="font-size:0.8rem; color:#e65100; font-weight:bold;">📦 DTDC ಕೊರಿಯರ್ ಟ್ರ್ಯಾಕಿಂಗ್ (ಗ್ರಾಹಕರಿಗೆ ಒಟಿಪಿ ಹೋಗುವುದಿಲ್ಲ):</span>
+              <div style="display:flex; gap:6px; margin-top:4px;">
+                <input type="text" id="trackInput_${o.id}" value="${trackingId}" placeholder="DTDC AWB ನಂಬರ್ ಹಾಕಿ" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+                <button class="btn btn-primary" onclick="saveCourierTracking('${o.id}')">ಸೇವ್</button>
+              </div>
+              ${trackingId ? `<a href="https://www.dtdc.in/tracking.asp?strConsignmentNo=${trackingId}" target="_blank" style="display:inline-block; margin-top:6px; color:#fff; background:#1976d2; padding:4px 8px; border-radius:4px; font-size:0.75rem; text-decoration:none;">🌐 DTDC ಲೈವ್ ಟ್ರ್ಯಾಕಿಂಗ್ ನೋಡಿ</a>` : ''}
+            </div>
+          `;
         }
 
         return `
-          <div class="card-box" style="border-left:4px solid ${isCourier ? '#1976d2' : '#e65100'};">
-            ${returnTagHtml}
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <b>ಆರ್ಡರ್ ID: ${o.orderId || o.id}</b>
-              <span style="font-size:0.7rem; padding:2px 6px; border-radius:4px; background:${isCourier ? '#e3f2fd' : '#fff3e0'}; color:${isCourier ? '#1565c0' : '#e65100'}; font-weight:bold;">
-                ${isCourier ? '✈️ ಕೊರಿಯರ್ / DTDC' : '🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ'}
-              </span>
-            </div>
+          <div class="card-box" style="border-left:4px solid ${isPickedUpByDboy ? 'var(--success)' : 'var(--primary)'};">
+            <b>ಆರ್ಡರ್ ID: ${o.orderId || o.id}</b><br>
+            <b>ವಸ್ತು:</b> ${o.productName} - ₹${o.totalPrice}<br>
+            <b>ಅಂಗಡಿ:</b> ${o.shopName || 'Store'} | <b>ಗ್ರಾಹಕರು:</b> ${o.customer?.name} (${o.customer?.phone})<br>
+            <b>ಸ್ಥಿತಿ:</b> ${o.status} ${isPickedUpByDboy ? ' | 🛵 ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್ ಮಾಡಿದ್ದಾರೆ' : ''}
 
-            <div style="margin:6px 0; font-size:0.8rem;">
-              <b>ವಸ್ತು:</b> ${o.productName || 'ಚಪ್ಪಲಿ'} | <b>ಬೆಲೆ:</b> ₹${o.totalPrice || 0}<br>
-              <b>ಅಂಗಡಿ ID:</b> ${o.shopId || 'N/A'}<br>
-              <b>ಗ್ರಾಹಕರು:</b> ${o.customer ? o.customer.name : 'ಅನಿಲ್ ರಾಥೋಡ್'} (${custPhone})<br>
-              <b>ವಿಳಾಸ:</b> ${o.customer ? o.customer.village : 'ಭೀಮರಾಯನಗುಡಿ, ಶಹಾಪುರ'}
-            </div>
-
-            <!-- ACTION BUTTONS: Call & GPS Map -->
-            <div style="display:flex; gap:6px; margin:6px 0;">
-              ${custPhone ? `<a href="tel:${custPhone}" class="btn btn-primary" style="flex:1; text-align:center; text-decoration:none; padding:6px;">📞 ಕಾಲ್ ಮಾಡು</a>` : ''}
-              <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank" class="btn btn-success" style="flex:1; text-align:center; text-decoration:none; padding:6px;">🗺️ ಜಿಪಿಎಸ್ ಮ್ಯಾಪ್</a>
-            </div>
-
-            <!-- SHOP OWNER CONFIRM / CANCEL BUTTONS -->
-            <div style="background:#fff3e0; padding:8px; border-radius:6px; margin:6px 0; display:flex; gap:6px; align-items:center;">
-              <span style="font-size:0.75rem; font-weight:bold;">ಅಂಗಡಿ ಮಾಲೀಕರ ಕಂಟ್ರೋಲ್:</span>
-              ${status === 'PENDING' ? `
-                <button class="btn btn-success" style="flex:1;" onclick="shopConfirmOrder('${o.id}')">✔ ಕನ್ಫರ್ಮ್</button>
-                <button class="btn btn-danger" style="flex:1;" onclick="shopCancelOrder('${o.id}')">✖ ಕ್ಯಾನ್ಸಲ್</button>
-              ` : `<span style="font-size:0.75rem; color:var(--success); font-weight:bold;">✅ ಕನ್ಫರ್ಮ್ ಮಾಡಲಾಗಿದೆ</span>`}
-            </div>
-
-            <!-- PACKED BUTTON FOR SHOP -->
-            <div style="margin:6px 0;">
-              ${status === 'CONFIRMED' || status === 'PENDING' ? `
-                <button class="btn btn-primary" style="width:100%; padding:8px;" onclick="shopMarkPacked('${o.id}')">
-                  📦 ಪ್ಯಾಕಿಂಗ್ ಆಗಿದೆ (Mark as Packed)
-                </button>
-              ` : ''}
-            </div>
-
-            <!-- ಡೆಲಿವರಿ ಮೋಡ್ ಡ್ರಾಪ್‌ಡೌನ್ -->
-            <div style="background:#fff; border:1px solid #ccc; padding:6px; border-radius:6px; margin:6px 0;">
-              <label style="font-size:0.75rem; font-weight:bold;">🚚 ಡೆಲಿವರಿ ಮೋಡ್ ಆಯ್ಕೆ ಮಾಡಿ ಕನ್ಫರ್ಮ್ ಮಾಡಿ:</label>
-              <select id="selectMode_${o.id}" style="width:100%; padding:6px; margin-top:4px; border-radius:4px; border:1px solid #999;">
-                <option value="LOCAL" ${!isCourier ? 'selected' : ''}>🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ (OTP & ಡೆಲಿವರಿ ಬಾಯ್ ರೋಡ್‌ಮ್ಯಾಪ್ ತೋರಿಸಿ)</option>
-                <option value="COURIER" ${isCourier ? 'selected' : ''}>📦 DTDC ಕೊರಿಯರ್ (OTP ರದ್ದುಗೊಳಿಸಿ, ಲೈವ್ ಟ್ರ್ಯಾಕಿಂಗ್ ತೋರಿಸಿ)</option>
-              </select>
-              <button class="btn btn-success" style="width:100%; margin-top:6px; padding:6px;" onclick="saveAndConfirmOrderMode('${o.id}')">
-                ✔ ಮೋಡ್ ಸೇವ್ ಮಾಡಿ ಕನ್ಫರ್ಮ್ ಮಾಡಿ
-              </button>
-            </div>
-
-            ${!isCourier ? `
-              <div style="background:#e8f5e9; padding:8px; border-radius:6px; margin:6px 0;">
-                🔑 <b>ಗ್ರಾಹಕರಿಗೆ ತೋರಿಸುವ ಡೆಲಿವರಿ ಒಟಿಪಿ (4-Digit OTP):</b>
-                <span style="font-size:1.1rem; font-weight:800; color:#2e7d32; margin-left:6px;">${o.deliveryOtp || '1774'}</span>
-              </div>
-            ` : `
-              <div style="background:#e3f2fd; padding:8px; border-radius:6px; margin:6px 0;">
-                📦 <b>DTDC AWB / Tracking Number:</b>
-                <div style="display:flex; gap:6px; margin-top:4px;">
-                  <input type="text" id="trackInput_${o.id}" value="${trackingId}" placeholder="DTDC ನಂಬರ್ ಹಾಕಿ" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px; text-align:center;">
-                  <button class="btn btn-primary" onclick="saveTrackingId('${o.id}')">ಸೇವ್ ಮಾಡಿ</button>
-                </div>
-                ${trackingId ? `
-                  <a href="https://www.dtdc.in/tracking.asp?strConsignmentNo=${trackingId}" target="_blank" class="btn btn-success" style="width:100%; margin-top:6px; text-decoration:none;">
-                    🌐 Track Courier Live (DTDC)
-                  </a>
-                ` : ''}
-              </div>
-            `}
-
-            <!-- LIVE STATUS ROADMAP -->
-            <div class="roadmap-box">
-              <b>📌 ಆರ್ಡರ್ ಟ್ರ್ಯಾಕಿಂಗ್ ರೋಡ್‌ಮ್ಯಾಪ್:</b>
-              <div class="step-item" style="margin-top:4px;">
-                <div class="step-dot ${isStep1 ? 'active' : ''}"></div> 1. ಆರ್ಡರ್ ಕನ್ಫರ್ಮ್ ಆಗಿದೆ
-              </div>
-              <div class="step-item">
-                <div class="step-dot ${isStep2 ? 'active' : ''}"></div> 2. ಅಂಗಡಿಯಿಂದ ಪ್ಯಾಕಿಂಗ್ ಆಗಿದೆ
-              </div>
-              <div class="step-item">
-                <div class="step-dot ${isStep3 ? 'active' : ''}"></div> 3. ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್ ಮಾಡಿಕೊಂಡಿದ್ದಾರೆ
-              </div>
-              <div class="step-item">
-                <div class="step-dot ${isStep4 ? 'active' : ''}"></div> 4. ಡೆಲಿವರಿ ಯಶಸ್ವಿಯಾಗಿದೆ
-              </div>
-            </div>
-
-            <!-- ADMIN DELIVERY CONFIRM BUTTON -->
-            <div style="display:flex; gap:6px; margin-top:8px;">
-              ${!isStep4 ? `
-                <button class="btn btn-success" style="flex:1; padding:8px;" onclick="markAdminDelivered('${o.id}')">
-                  ✔ ಡೆಲಿವರಿ ಕನ್ಫರ್ಮ್ ಮಾಡಿ (Mark as Delivered OK)
-                </button>
-              ` : `
-                <span style="color:var(--success); font-weight:bold; font-size:0.85rem; width:100%; text-align:center;">
-                  ✅ ಡೆಲಿವರಿ ಯಶಸ್ವಿಯಾಗಿ ಪೂರ್ಣಗೊಂಡಿದೆ!
-                </span>
-              `}
-            </div>
+            ${updateNeededHtml}
+            ${modeDetailsHtml}
           </div>
         `;
       }).join('');
     }
 
-    async function shopConfirmOrder(orderDocId) {
+    async function confirmDeliveryMode(orderDocId) {
+      const mode = document.getElementById(`modeSelect_${orderDocId}`).value;
       try {
         await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
-          status: 'CONFIRMED',
+          deliveryMode: mode,
+          status: mode === 'LOCAL' ? 'OUT_FOR_DELIVERY' : 'HANDOVER_TO_DTDC',
           updatedAt: window.serverTimestamp()
         });
-        alert("✅ ಆರ್ಡರ್ ಕನ್ಫರ್ಮ್ ಮಾಡಲಾಗಿದೆ!");
+        alert(mode === 'LOCAL' ? "✅ ಲೋಕಲ್ ಡೆಲಿವರಿ ಮೋಡ್ ಸೆಟ್ ಮಾಡಲಾಗಿದೆ." : "✅ DTDC ಕೊರಿಯರ್ ಮೋಡ್ ಸೆಟ್ ಮಾಡಲಾಗಿದೆ.");
       } catch(e) { alert("Error: " + e.message); }
     }
 
-    async function shopCancelOrder(orderDocId) {
-      if (confirm("ಈ ಆರ್ಡರ್ ಕ್ಯಾನ್ಸಲ್ ಮಾಡಲು ಬಯಸುವಿರಾ?")) {
-        try {
-          await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
-            status: 'CANCELLED',
-            updatedAt: window.serverTimestamp()
-          });
-          alert("❌ ಆರ್ಡರ್ ಕ್ಯಾನ್ಸಲ್ ಮಾಡಲಾಗಿದೆ.");
-        } catch(e) { alert("Error: " + e.message); }
-      }
-    }
-
-    async function shopMarkPacked(orderDocId) {
-      try {
-        let randomOtp = Math.floor(1000 + Math.random() * 9000);
-        await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
-          status: 'PACKED',
-          deliveryOtp: String(randomOtp),
-          updatedAt: window.serverTimestamp()
-        });
-        alert("📦 ಪ್ಯಾಕಿಂಗ್ ಯಶಸ್ವಿಯಾಗಿದೆ! ಡೆಲಿವರಿ ಬಾಯ್ಸ್‌ಗೆ ನೋಟಿಫಿಕೇಶನ್ ಹೋಗಿದೆ.");
-      } catch(e) { alert("Error: " + e.message); }
-    }
-
-    async function saveAndConfirmOrderMode(orderDocId) {
-      const selectedMode = document.getElementById(`selectMode_${orderDocId}`).value;
-      try {
-        await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
-          deliveryMode: selectedMode,
-          status: selectedMode === 'LOCAL' ? 'OUT_FOR_DELIVERY' : 'HANDOVER_TO_DTDC',
-          updatedAt: window.serverTimestamp()
-        });
-        alert(selectedMode === 'LOCAL' ? "🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ ಮೋಡ್ ಸೆಟ್ ಆಗಿದೆ!" : "📦 DTDC ಕೊರಿಯರ್ ಮೋಡ್ ಸೆಟ್ ಆಗಿದೆ!");
-      } catch(e) { alert("Error: " + e.message); }
-    }
-
-    async function saveTrackingId(orderDocId) {
+    async function saveCourierTracking(orderDocId) {
       const trackVal = document.getElementById(`trackInput_${orderDocId}`).value.trim();
-      if (!trackVal) { alert("ದಯವಿಟ್ಟು ಸರಿಯಾದ AWB ನಂಬರ್ ಹಾಕಿ."); return; }
+      if (!trackVal) { alert("ದಯವಿಟ್ಟು ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಹಾಕಿ."); return; }
       try {
         await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
           trackingId: trackVal,
-          status: 'OUT_FOR_DELIVERY',
           updatedAt: window.serverTimestamp()
         });
         alert("✅ DTDC ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಸೇವ್ ಆಗಿದೆ!");
       } catch(e) { alert("Error: " + e.message); }
-    }
-
-    async function markAdminDelivered(orderDocId) {
-      if (confirm("ಈ ಆರ್ಡರ್ ಡೆಲಿವರಿ ಸಂಪೂರ್ಣಗೊಂಡಿದೆ ಎಂದು ದೃಢೀಕರಿಸಲು ಬಯಸುವಿರಾ?")) {
-        try {
-          await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
-            status: 'DELIVERED',
-            deliveredAt: window.serverTimestamp()
-          });
-          alert("✅ ಆರ್ಡರ್ ಡೆಲಿವರಿ ಕಂಪ್ಲೀಟ್ ಆಗಿದೆ!");
-        } catch(e) { alert("Error: " + e.message); }
-      }
     }
 
     async function uploadBannerImage() {
@@ -768,118 +588,7 @@
         container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಅಂಗಡಿ ಮಾಲೀಕರಿಲ್ಲ.</p>';
         return;
       }
-
-      container.innerHTML = list.map(s => {
-        let shopOrders = allOrders.filter(o => o.shopId === s.id);
-        let grossEarnings = shopOrders.reduce((acc, curr) => curr.status === 'DELIVERED' ? acc + Number(curr.totalPrice || 0) : acc, 0);
-        let returnDeduction = shopOrders.reduce((acc, curr) => (curr.status === 'RETURNED' || curr.isReturned) ? acc + Number(curr.totalPrice || 0) : acc, 0);
-        
-        let netAfterReturn = grossEarnings - returnDeduction;
-        let commissionPercent = s.commissionPercent !== undefined ? Number(s.commissionPercent) : 15;
-        let commissionAmount = Math.round(netAfterReturn * (commissionPercent / 100));
-        let payableToShop = netAfterReturn - commissionAmount;
-        if (payableToShop < 0) payableToShop = 0;
-
-        const now = Date.now();
-        let isPaidActive = s.isPaid || false;
-        if (s.paidExpiryDate && now > s.paidExpiryDate) isPaidActive = false;
-
-        let shopQrPhoto = s.qrPhoto || '';
-        let qrDisplayHtml = shopQrPhoto ? `<button class="btn btn-success" onclick="openQRModal('${shopQrPhoto}', '${payableToShop}', 'ಅಂಗಡಿ ಮಾಲೀಕ')" style="padding:8px;">ಕ್ಯೂಆರ್ ಕೋಡ್</button>` : `<span style="font-size:0.75rem; color:#d32f2f; font-weight:bold;">ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>`;
-
-        let isShopPaidSuccess = s.shopPaymentSuccess || false;
-
-        return `
-          <div class="card-box">
-            <div style="display:flex; gap:10px; align-items:center; margin-bottom:6px;">
-              <img src="${s.photo || 'https://via.placeholder.com/60'}" style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:1px solid #ccc; cursor:pointer;" onclick="openImageModal('${s.photo}', 'ಅಂಗಡಿ ಮಾಲೀಕರ ಫೋಟೋ')">
-              <div>
-                <b>${s.shopName}</b> (${s.shopType || 'General'})<br>
-                ಮಾಲೀಕರು: ${s.name} | ಫೋನ್: ${s.phone}<br>
-                <b>ID: ${s.id}</b> | ಸ್ಥಳ: ${s.taluk}, ${s.district}
-              </div>
-            </div>
-
-            <div style="background:#fff3e0; padding:8px; border-radius:6px; margin:6px 0;">
-              <label style="font-size:0.75rem; font-weight:bold;">⚙️ ಕಮಿಷನ್ ಚಾರ್ಜಸ್ (%) ಸೆಟ್ಟಿಂಗ್ಸ್:</label>
-              <div style="display:flex; gap:6px; margin-top:4px;">
-                <input type="number" id="commissionInput_${s.docId}" value="${commissionPercent}" min="0" max="100" style="width:80px; padding:4px; text-align:center; border:1px solid #ccc; border-radius:4px; font-weight:bold;">
-                <button class="btn btn-primary" style="flex:1; padding:6px; font-size:0.75rem;" onclick="saveShopCommission('${s.docId}')">💾 ಪರ್ಸೆಂಟ್ ಸೇವ್ ಮಾಡಿ</button>
-              </div>
-            </div>
-
-            <div style="background:#e8f4fd; padding:8px; border-radius:6px; margin:6px 0; font-size:0.78rem; line-height:1.4;">
-              📊 <b>ಲೆಕ್ಕಾಚಾರ (${commissionPercent}% ಕಮಿಷನ್):</b><br>
-              • ಒಟ್ಟು ಮಾರಾಟ: ₹${grossEarnings} (ರಿಟರ್ನ್ ಕಡಿತ: -₹${returnDeduction})<br>
-              • ಕಮಿಷನ್: ₹${commissionAmount} | <b>ಅಂಗಡಿಗೆ ನೀಡಬೇಕಾದ ಮೊತ್ತ: ₹${payableToShop}</b>
-            </div>
-
-            <div style="margin-top:6px; display:flex; gap:6px; align-items:center;">
-              ${qrDisplayHtml}
-            </div>
-
-            <div style="margin-top:8px; background:#fff; padding:8px; border:1px solid #ddd; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:0.75rem; font-weight:bold; color:${isShopPaidSuccess ? 'var(--success)' : '#d32f2f'};">
-                ${isShopPaidSuccess ? '✅ ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಆಗಿದೆ' : '⏳ ಪೇಮೆಂಟ್ ಬಾಕಿ ಇದೆ'}
-              </span>
-              <button class="btn ${isShopPaidSuccess ? 'btn-danger' : 'btn-success'}" onclick="toggleShopPaymentSuccess('${s.docId}', ${isShopPaidSuccess})">
-                ${isShopPaidSuccess ? 'ಬಾಕಿ ಎಂದು ಬದಲಾಯಿಸಿ' : 'ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಮಾಡಿ'}
-              </button>
-            </div>
-
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-              <span style="font-size:0.75rem; font-weight:bold; color:${isPaidActive ? 'var(--success)' : '#d32f2f'};">
-                ${isPaidActive ? '✅ ಸದಸ್ಯತ್ವ ಸಕ್ಸಸ್' : '⚠️ ಪೆಂಡಿಂಗ್ ಇದೆ'}
-              </span>
-              <button class="btn ${isPaidActive ? 'btn-danger' : 'btn-success'}" onclick="toggleShopPayment('${s.docId}', ${isPaidActive})">
-                ${isPaidActive ? 'ಪೆಂಡಿಂಗ್‌ಗೆ ಬದಲಾಯಿಸಿ' : 'ಸದಸ್ಯತ್ವ ಸಕ್ಸಸ್ ಮಾಡಿ'}
-              </button>
-              <button class="btn btn-danger" onclick="deleteShopCompletely('${s.docId}', '${s.id}')">ಸಂಪೂರ್ಣ ಡಿಲೀಟ್</button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    async function saveShopCommission(docId) {
-      const inputVal = document.getElementById(`commissionInput_${docId}`).value;
-      const percent = Number(inputVal);
-      try {
-        await window.updateDoc(window.doc(window.db, "shop_owners", docId), {
-          commissionPercent: percent,
-          updatedAt: window.serverTimestamp()
-        });
-        alert(`✅ ಕಮಿಷನ್ ${percent}% ಸೇವ್ ಮಾಡಲಾಗಿದೆ!`);
-      } catch(e) { alert("Error: " + e.message); }
-    }
-
-    async function toggleShopPaymentSuccess(docId, currentStatus) {
-      try {
-        await window.updateDoc(window.doc(window.db, "shop_owners", docId), { shopPaymentSuccess: !currentStatus });
-        alert("✅ ಪೇಮೆಂಟ್ ಅಪ್‌ಡೇಟ್ ಮಾಡಲಾಗಿದೆ!");
-      } catch(e) { alert("Error: " + e.message); }
-    }
-
-    async function toggleShopPayment(docId, currentStatus) {
-      try {
-        const newStatus = !currentStatus;
-        const oneYearFromNow = Date.now() + (365 * 24 * 60 * 60 * 1000);
-        await window.updateDoc(window.doc(window.db, "shop_owners", docId), {
-          isPaid: newStatus,
-          paidAt: window.serverTimestamp(),
-          paidExpiryDate: newStatus ? oneYearFromNow : null
-        });
-        alert("🟢 ಸದಸ್ಯತ್ವ ಅಪ್‌ಡೇಟ್ ಮಾಡಲಾಗಿದೆ!");
-      } catch(e) { alert("Error: " + e.message); }
-    }
-
-    async function deleteShopCompletely(docId, shopId) {
-      if (confirm("ಈ ಅಂಗಡಿ ಮಾಲೀಕರನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಡಿಲೀಟ್ ಮಾಡಲು ಬಯಸುವಿರಾ?")) {
-        try {
-          await window.deleteDoc(window.doc(window.db, "shop_owners", docId));
-          alert("ಅಂಗಡಿ ಮಾಲೀಕರು ಡಿಲೀಟ್ ಆಗಿದ್ದಾರೆ.");
-        } catch(e) { alert("Error: " + e.message); }
-      }
+      container.innerHTML = list.map(s => `<div class="card-box"><b>${s.shopName}</b> (${s.name}) - ID: ${s.id}</div>`).join('');
     }
 
     function renderDeliveryBoys(list) {
@@ -888,40 +597,7 @@
         container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ಇಲ್ಲ.</p>';
         return;
       }
-
-      container.innerHTML = list.map(db => {
-        let deliveredCount = allOrders.filter(o => o.status === 'DELIVERED').length;
-        let totalDboyEarnings = (deliveredCount * 100) + Math.round(deliveredCount * 50);
-        let dboyQrPhoto = db.qrPhoto || db.customQrPhoto || '';
-        let qrDisplayHtml = dboyQrPhoto ? `<button class="btn btn-success" onclick="openQRModal('${dboyQrPhoto}', '${totalDboyEarnings}', 'ಡೆಲಿವರಿ ಬಾಯ್')" style="padding:8px;">ಕ್ಯೂಆರ್ ಕೋಡ್</button>` : `<span style="font-size:0.75rem; color:#d32f2f; font-weight:bold;">ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>`;
-        let isDboyPaidSuccess = db.dboyPaymentSuccess || false;
-
-        return `
-          <div class="card-box">
-            <div style="display:flex; gap:10px; align-items:center; margin-bottom:6px;">
-              <img src="${db.selfie || 'https://via.placeholder.com/60'}" style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:1px solid #ccc;">
-              <div>
-                <b>${db.name}</b><br>ಫೋನ್: ${db.phone} | <b>ID: ${db.id}</b>
-              </div>
-            </div>
-            <div style="background:#f1f8e9; padding:8px; border-radius:6px; font-size:0.78rem;">
-              🛵 <b>ಗಳಿಕೆ:</b> ಡೆಲಿವರಿ ಕೊಟ್ಟಿದ್ದು: ${deliveredCount} | <b>ಒಟ್ಟು: ₹${totalDboyEarnings}</b>
-            </div>
-            <div style="margin-top:8px;">${qrDisplayHtml}</div>
-            <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:0.75rem; font-weight:bold; color:${isDboyPaidSuccess ? 'var(--success)' : '#d32f2f'};">${isDboyPaidSuccess ? '✅ ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಆಗಿದೆ' : '⏳ ಪೇಮೆಂಟ್ ಬಾಕಿ ಇದೆ'}</span>
-              <button class="btn ${isDboyPaidSuccess ? 'btn-danger' : 'btn-success'}" onclick="toggleDboyPaymentSuccess('${db.docId}', ${isDboyPaidSuccess})">${isDboyPaidSuccess ? 'ಬಾಕಿ' : 'ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಮಾಡಿ'}</button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    async function toggleDboyPaymentSuccess(docId, currentStatus) {
-      try {
-        await window.updateDoc(window.doc(window.db, "delivery_boys", docId), { dboyPaymentSuccess: !currentStatus });
-        alert("✅ ಪೇಮೆಂಟ್ ಅಪ್‌ಡೇಟ್ ಮಾಡಲಾಗಿದೆ!");
-      } catch(e) { alert("Error: " + e.message); }
+      container.innerHTML = list.map(db => `<div class="card-box"><b>${db.name}</b> - ID: ${db.id}</div>`).join('');
     }
 
     function renderCustomers(list) {
@@ -961,15 +637,7 @@
       document.getElementById('imageModal').style.display = 'flex';
     }
 
-    function openQRModal(qrImgSrc, price, type) {
-      document.getElementById('modalTitle').innerText = `${type} ಪಾವತಿ ಕ್ಯೂಆರ್ ಕೋಡ್ (₹${price})`;
-      document.getElementById('modalBodyContent').innerHTML = `<img src="${qrImgSrc}" style="width:220px; height:220px; margin:10px auto; display:block; object-fit:contain; background:#fff; border:2px solid #1e88e5; border-radius:8px;">`;
-      document.getElementById('downloadLink').href = qrImgSrc;
-      document.getElementById('imageModal').style.display = 'flex';
-    }
-
     function closeImageModal() { document.getElementById('imageModal').style.display = 'none'; }
-    function closeShopProductsModal() { document.getElementById('shopProductsModal').style.display = 'none'; }
 
     function filterMasterData() {
       const q = document.getElementById('masterSearch').value.toLowerCase();
