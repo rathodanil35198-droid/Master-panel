@@ -110,11 +110,6 @@
     
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 10000; padding: 15px; }
     .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 400px; width: 100%; text-align: center; max-height: 90vh; overflow-y: auto; }
-
-    .roadmap-box { background: #fff; border: 1px dashed #1976d2; padding: 10px; border-radius: 6px; margin: 8px 0; font-size: 0.78rem; }
-    .step-item { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-    .step-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
-    .step-dot.active { background: #388e3c; }
   </style>
 </head>
 <body>
@@ -184,9 +179,9 @@
       <div id="ordersListContainer"></div>
     </div>
 
-    <!-- TAB 1: SHOP OWNERS -->
+    <!-- TAB 1: SHOP OWNERS & COMMISSION EDITING -->
     <div id="shopsTab" style="display:none;">
-      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🏪 ಲಾಗಿನ್ ಆಗಿರುವ ಅಂಗಡಿ ಮಾಲೀಕರು & ಕಮಿಷನ್ ಸೆಟ್ಟಿಂಗ್ಸ್</h3>
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🏪 ಲಾಗಿನ್ ಆಗಿರುವ ಅಂಗಡಿ ಮಾಲೀಕರು & ಕಮಿಷನ್ ಎಡಿಟ್ ಸೆಟ್ಟಿಂಗ್ಸ್</h3>
       <div id="shopsListContainer"></div>
     </div>
 
@@ -233,7 +228,6 @@
     let allDeliveryBoys = [];
     let allCustomers = [];
     let allOrders = [];
-    let allProducts = [];
     let allBanners = [];
     let allWithdrawals = [];
     let deferredPrompt = null;
@@ -375,11 +369,10 @@
       processCustomers();
     }
 
-    // --- TAB 0: LIVE DUAL ORDERS MANAGEMENT LOGIC ---
     function renderOrders(list) {
       const container = document.getElementById('ordersListContainer');
       if (list.length === 0) {
-        container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಹೊಸ ಆರ್ಡರ್‌ಗಳಿಲ್ಲ.</p>';
+        container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಆರ್ಡರ್‌ಗಳಿಲ್ಲ.</p>';
         return;
       }
 
@@ -389,19 +382,15 @@
         let deliveryMode = o.deliveryMode || ''; 
         let trackingId = o.trackingId || '';
 
-        // ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್ ಮಾಡಿದ ತಕ್ಷಣ 'ಕನ್ನಡದಲ್ಲಿ ಹೊಸ ಆರ್ಡರ್ ಬಂದಿದೆ ಅಪ್ಡೇಟ್ ಮಾಡಿ' ಬಟನ್/ಬಾಕ್ಸ್ ಕಾಣಿಸುವುದು
         let updateNeededHtml = '';
         if (isPickedUpByDboy && !deliveryMode) {
           updateNeededHtml = `
             <div style="background:#e8f5e9; border:2px solid #388e3c; padding:10px; border-radius:6px; margin:8px 0;">
-              <span style="color:#2e7d32; font-weight:bold; font-size:0.85rem;">🔔 ಕನ್ನಡದಲ್ಲಿ ಹೊಸ ಆರ್ಡರ್ ಬಂದಿದೆ ಅಪ್ಡೇಟ್ ಮಾಡಿ:</span>
-              <p style="font-size:0.75rem; color:#444; margin-top:2px;">ಡೆಲಿವರಿ ಬಾಯ್ ವಸ್ತುವನ್ನು ಪಿಕ್-ಅಪ್ ಮಾಡಿದ್ದಾರೆ. ಇದನ್ನು ಗ್ರಾಹಕರಿಗೆ ತಲುಪಿಸಲು ಮೋಡ್ ಆಯ್ಕೆಮಾಡಿ:</p>
-              
+              <span style="color:#2e7d32; font-weight:bold; font-size:0.85rem;">🔔 ಡೆಲಿವರಿ ಮೋಡ್ ಆಯ್ಕೆಮಾಡಿ:</span>
               <select id="modeSelect_${o.id}" style="width:100%; padding:8px; margin-top:6px; border:1px solid #388e3c; border-radius:4px; font-weight:bold;">
-                <option value="LOCAL">🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ ಬಾಯ್ ಮೂಲಕ ಕಳುಹಿಸಿ (OTP ತೋರಿಸಿ)</option>
-                <option value="COURIER">✈️ DTDC ಕೊರಿಯರ್ ಮೂಲಕ ಕಳುಹಿಸಿ (ಲೈವ್ ಟ್ರ್ಯಾಕಿಂಗ್)</option>
+                <option value="LOCAL">🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ ಬಾಯ್ ಮೂಲಕ (OTP)</option>
+                <option value="COURIER">✈️ DTDC ಕೊರಿಯರ್ ಮೂಲಕ (ಟ್ರ್ಯಾಕಿಂಗ್)</option>
               </select>
-              
               <button class="btn btn-success" style="width:100%; margin-top:6px; padding:8px;" onclick="confirmDeliveryMode('${o.id}')">
                 ✔ ಮೋಡ್ ಖಚಿತಪಡಿಸಿ ಕಳುಹಿಸಿ
               </button>
@@ -413,19 +402,18 @@
         if (deliveryMode === 'LOCAL') {
           modeDetailsHtml = `
             <div style="background:#e3f2fd; padding:8px; border-radius:6px; margin:6px 0; text-align:center;">
-              <span style="font-size:0.8rem; color:#1565c0; font-weight:bold;">🔑 ಲೋಕಲ್ ಡೆಲಿವರಿ ಒಟಿಪಿ (ಗ್ರಾಹಕರಿಗೆ ಮಾತ್ರ ಗೋಚರಿಸುತ್ತದೆ):</span>
+              <span style="font-size:0.8rem; color:#1565c0; font-weight:bold;">🔑 ಲೋಕಲ್ ಡೆಲಿವರಿ ಒಟಿಪಿ:</span>
               <div style="font-size:1.3rem; font-weight:bold; color:#0d47a1; margin-top:2px;">${o.deliveryOtp || '8740'}</div>
             </div>
           `;
         } else if (deliveryMode === 'COURIER') {
           modeDetailsHtml = `
             <div style="background:#fff3e0; padding:8px; border-radius:6px; margin:6px 0;">
-              <span style="font-size:0.8rem; color:#e65100; font-weight:bold;">📦 DTDC ಕೊರಿಯರ್ ಟ್ರ್ಯಾಕಿಂಗ್ (ಗ್ರಾಹಕರಿಗೆ ಒಟಿಪಿ ಹೋಗುವುದಿಲ್ಲ):</span>
+              <span style="font-size:0.8rem; color:#e65100; font-weight:bold;">📦 DTDC ಕೊರಿಯರ್ ಟ್ರ್ಯಾಕಿಂಗ್:</span>
               <div style="display:flex; gap:6px; margin-top:4px;">
-                <input type="text" id="trackInput_${o.id}" value="${trackingId}" placeholder="DTDC AWB ನಂಬರ್ ಹಾಕಿ" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+                <input type="text" id="trackInput_${o.id}" value="${trackingId}" placeholder="DTDC AWB ನಂಬರ್" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
                 <button class="btn btn-primary" onclick="saveCourierTracking('${o.id}')">ಸೇವ್</button>
               </div>
-              ${trackingId ? `<a href="https://www.dtdc.in/tracking.asp?strConsignmentNo=${trackingId}" target="_blank" style="display:inline-block; margin-top:6px; color:#fff; background:#1976d2; padding:4px 8px; border-radius:4px; font-size:0.75rem; text-decoration:none;">🌐 DTDC ಲೈವ್ ಟ್ರ್ಯಾಕಿಂಗ್ ನೋಡಿ</a>` : ''}
             </div>
           `;
         }
@@ -436,7 +424,6 @@
             <b>ವಸ್ತು:</b> ${o.productName} - ₹${o.totalPrice}<br>
             <b>ಅಂಗಡಿ:</b> ${o.shopName || 'Store'} | <b>ಗ್ರಾಹಕರು:</b> ${o.customer?.name} (${o.customer?.phone})<br>
             <b>ಸ್ಥಿತಿ:</b> ${o.status} ${isPickedUpByDboy ? ' | 🛵 ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್ ಮಾಡಿದ್ದಾರೆ' : ''}
-
             ${updateNeededHtml}
             ${modeDetailsHtml}
           </div>
@@ -452,7 +439,7 @@
           status: mode === 'LOCAL' ? 'OUT_FOR_DELIVERY' : 'HANDOVER_TO_DTDC',
           updatedAt: window.serverTimestamp()
         });
-        alert(mode === 'LOCAL' ? "✅ ಲೋಕಲ್ ಡೆಲಿವರಿ ಮೋಡ್ ಸೆಟ್ ಮಾಡಲಾಗಿದೆ." : "✅ DTDC ಕೊರಿಯರ್ ಮೋಡ್ ಸೆಟ್ ಮಾಡಲಾಗಿದೆ.");
+        alert("✅ ಡೆಲಿವರಿ ಮೋಡ್ ಯಶಸ್ವಿಯಾಗಿ ಸೆಟ್ ಮಾಡಲಾಗಿದೆ!");
       } catch(e) { alert("Error: " + e.message); }
     }
 
@@ -465,6 +452,38 @@
           updatedAt: window.serverTimestamp()
         });
         alert("✅ DTDC ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಸೇವ್ ಆಗಿದೆ!");
+      } catch(e) { alert("Error: " + e.message); }
+    }
+
+    // --- ಅಂಗಡಿ ಮಾಲೀಕರ ಕಮಿಷನ್ ಎಡಿಟ್ ಮತ್ತು ಸೇವ್ ಫಂಕ್ಷನ್ ---
+    function renderShops(list) {
+      const container = document.getElementById('shopsListContainer');
+      if (list.length === 0) {
+        container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಅಂಗಡಿ ಮಾಲೀಕರಿಲ್ಲ.</p>';
+        return;
+      }
+      container.innerHTML = list.map(s => `
+        <div class="card-box">
+          <b>ಅಂಗಡಿ:</b> ${s.shopName} (${s.name}) - ID: ${s.id}<br>
+          <b>ವಿಭಾಗ:</b> ${s.shopType || 'ಇತರ'} | <b>ಫೋನ್:</b> ${s.phone}<br>
+          
+          <div style="margin-top:8px; background:#e3f2fd; padding:8px; border-radius:6px; display:flex; align-items:center; gap:8px;">
+            <label style="font-size:0.75rem; font-weight:bold; color:#1565c0;">ಕಮಿಷನ್ ಪರ್ಸೆಂಟೇಜ್ (%):</label>
+            <input type="number" id="commInput_${s.docId}" value="${s.commissionPercent !== undefined ? s.commissionPercent : 12}" style="width:70px; padding:4px; font-weight:bold; text-align:center;">
+            <button class="btn btn-success" style="padding:6px 10px;" onclick="saveShopCommission('${s.docId}')">💾 ಸೇವ್</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function saveShopCommission(docId) {
+      const val = document.getElementById(`commInput_${docId}`).value;
+      try {
+        await window.updateDoc(window.doc(window.db, "shop_owners", docId), {
+          commissionPercent: Number(val),
+          updatedAt: window.serverTimestamp()
+        });
+        alert("✅ ಅಂಗಡಿ ಮಾಲೀಕರ ಕಮಿಷನ್ ಪರ್ಸೆಂಟೇಜ್ ಯಶಸ್ವಿಯಾಗಿ ಸೇವ್ ಮಾಡಲಾಗಿದೆ!");
       } catch(e) { alert("Error: " + e.message); }
     }
 
@@ -580,15 +599,6 @@
         allCustomers = Object.values(custMap);
         renderCustomers(allCustomers);
       });
-    }
-
-    function renderShops(list) {
-      const container = document.getElementById('shopsListContainer');
-      if (list.length === 0) {
-        container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಅಂಗಡಿ ಮಾಲೀಕರಿಲ್ಲ.</p>';
-        return;
-      }
-      container.innerHTML = list.map(s => `<div class="card-box"><b>${s.shopName}</b> (${s.name}) - ID: ${s.id}</div>`).join('');
     }
 
     function renderDeliveryBoys(list) {
