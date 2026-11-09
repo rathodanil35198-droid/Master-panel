@@ -498,7 +498,7 @@
       }
     }
 
-    // --- ಅಂಗಡಿ ಮಾಲೀಕರ ಪಟ್ಟಿ, QR ಕೋಡ್, ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ & ಕಮಿಷನ್ ---
+    // --- ಅಂಗಡಿ ಮಾಲೀಕರ ಪಟ್ಟಿ, QR ಕೋಡ್ ದೊಡ್ಡದಾಗಿ ನೋಡಲು, ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ & ಕಮಿಷನ್ ---
     function renderShops(list) {
       const container = document.getElementById('shopsListContainer');
       if (list.length === 0) {
@@ -513,7 +513,7 @@
         return `
           <div class="card-box">
             <div style="display:flex; gap:10px; align-items:center;">
-              <img src="${qrCodeImg}" style="width:60px; height:60px; object-fit:cover; border-radius:6px; border:1px solid #ccc; cursor:pointer;" onclick="openImageModal('${qrCodeImg}', 'ಅಂಗಡಿ ಕ್ಯೂಆರ್ ಕೋಡ್ - ${s.shopName}')" title="ಕ್ಲಿಕ್ ಮಾಡಿ ದೊಡ್ಡದಾಗಿ ನೋಡಿ">
+              <img src="${qrCodeImg}" style="width:70px; height:70px; object-fit:cover; border-radius:6px; border:1px solid #ccc; cursor:pointer;" onclick="openImageModal('${qrCodeImg}', 'ಅಂಗಡಿ ಕ್ಯೂಆರ್ ಕೋಡ್ - ${s.shopName}')" title="ಕ್ಲಿಕ್ ಮಾಡಿ ದೊಡ್ಡದಾಗಿ ನೋಡಿ">
               <div>
                 <b>ಅಂಗಡಿ:</b> ${s.shopName} (${s.name}) - ID: ${s.id}<br>
                 <b>ವಿಭಾಗ:</b> ${s.shopType || 'ಇತರ'} | <b>ಫೋನ್:</b> ${s.phone}<br>
@@ -561,7 +561,7 @@
           membershipPaid: status,
           updatedAt: window.serverTimestamp()
         });
-        alert(status ? "✅ ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಮಾಡಲಾಗಿದೆ! ಈಗ ಅಂಗಡಿ ಮಾಲೀಕರು ವಸ್ತುಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಬಹುದು." : "ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ ಸ್ಟೇಟಸ್ ಬದಲಾಯಿಸಲಾಗಿದೆ.");
+        alert(status ? "✅ ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಮಾಡಲಾಗಿದೆ! ಈಗ ಅಂಗಡಿ ಮಾಲೀಕರು ವಸ್ತುಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಬಹುದು." : "ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ ಆಫ್ ಮಾಡಲಾಗಿದೆ. ಈಗ ವಸ್ತುವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಲು ಬರುವುದಿಲ್ಲ.");
       } catch(e) { alert("Error: " + e.message); }
     }
 
