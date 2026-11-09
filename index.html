@@ -189,13 +189,13 @@
 
     <!-- TAB 0: LIVE DUAL ORDERS (LOCAL + DTDC) -->
     <div id="ordersTab">
-      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🚚 ಲೈವ್ ಡುಯಲ್ ಡೆಲಿವರಿ ಆರ್ಡರ್‌ಗಳು</h3>
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🚚 ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್-ಅಪ್ ಆದ ನಂತರ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್‌ಗೆ ಬಂದಿರುವ ಲೈವ್ ಆರ್ಡರ್‌ಗಳು</h3>
       <div id="ordersListContainer"></div>
     </div>
 
     <!-- TAB 1: SHOP OWNERS -->
     <div id="shopsTab" style="display:none;">
-      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🏪 ಲಾಗಿನ್ ಆಗಿರುವ ಅಂಗಡಿ ಮಾಲೀಕರು</h3>
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🏪 ಲಾಗಿನ್ ಆಗಿರುವ ಅಂಗಡಿ ಮಾಲೀಕರು & ಕಮಿಷನ್ ಸೆಟ್ಟಿಂಗ್ಸ್</h3>
       <div id="shopsListContainer"></div>
     </div>
 
@@ -367,12 +367,14 @@
           let orderTime = oData.createdAt ? oData.createdAt.toMillis() : (oData.timestamp || Date.now());
           
           if ((oData.status === 'DELIVERED' || oData.status === 'RETURNED') && orderTime < thirtyDaysAgo) {
-            return; // 1 ತಿಂಗಳ ನಂತರ ಹಳೆ ಆರ್ಡರ್‌ಗಳು ಆಟೋಮ್ಯಾಟಿಕ್ ಆಗಿ ಹೈಡ್ ಆಗುತ್ತವೆ
+            return;
           }
+          
+          // ಕೇವಲ ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್-ಅಪ್ ಆದ ಆರ್ಡರ್‌ಗಳು ಮಾತ್ರ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್‌ನಲ್ಲಿ ಕಾಣಬೇಕು (status === 'PICKED_UP_BY_DBOBO' ಅಥವಾ 'OUT_FOR_DELIVERY' ಇತ್ಯಾದಿ)
+          // ಅಂಗಡಿ ಪ್ಯಾಕ್ ಮಾಡಿದ ತಕ್ಷಣ ಡೆಲಿವರಿ ಬಾಯ್ ಆಪ್‌ಗೆ ಹೋಗುತ್ತದೆ, ಅಲ್ಲಿ ಪಿಕ್ ಮಾಡಿದ ಮೇಲೆ ಇಲ್ಲಿಗೆ ಬರುತ್ತದೆ.
           allOrders.push({ id: d.id, ...oData });
         });
 
-        // ಹೊಸ ಆರ್ಡರ್‌ಗಳು ಮೇಲ್ಭಾಗದಲ್ಲಿ ಕಾಣುವಂತೆ ವಿಂಗಡಣೆ (Sorting by newest first)
         allOrders.sort((a, b) => {
           let timeA = a.createdAt ? a.createdAt.toMillis() : (a.timestamp || 0);
           let timeB = b.createdAt ? b.createdAt.toMillis() : (b.timestamp || 0);
@@ -435,7 +437,10 @@
     }
 
     function processDataViews() {
-      renderOrders(allOrders);
+      // ಕೇವಲ ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್ ಮಾಡಿಕೊಂಡಿರುವ ಆರ್ಡರ್‌ಗಳು ಮಾತ್ರ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್‌ನಲ್ಲಿ ಲೈವ್ ತೋರಿಸುವುದು
+      let masterFilteredOrders = allOrders.filter(o => o.status === 'PICKED_UP_BY_DBOY' || o.status === 'OUT_FOR_DELIVERY' || o.status === 'HANDOVER_TO_DTDC' || o.status === 'DELIVERED' || o.isReturned || o.status === 'RETURNED' || o.status === 'RETURN_REQUESTED');
+      
+      renderOrders(masterFilteredOrders);
       renderShops(allShops);
       renderDeliveryBoys(allDeliveryBoys);
       renderReturnsTab(allOrders);
@@ -446,20 +451,20 @@
     function renderOrders(list) {
       const container = document.getElementById('ordersListContainer');
       if (list.length === 0) {
-        container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಲೈವ್ ಆರ್ಡರ್‌ಗಳಿಲ್ಲ.</p>';
+        container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್ ಮಾಡಿಕೊಂಡ ಯಾವುದೇ ಹೊಸ ಆರ್ಡರ್‌ಗಳಿಲ್ಲ.</p>';
         return;
       }
 
       container.innerHTML = list.map(o => {
         let deliveryMode = o.deliveryMode || 'LOCAL';
-        let status = o.status || 'CONFIRMED';
+        let status = o.status || 'PICKED_UP_BY_DBOY';
         let isCourier = deliveryMode === 'COURIER';
         let trackingId = o.trackingId || '';
 
         let isStep1 = true;
-        let isStep2 = status === 'PACKED' || status === 'OUT_FOR_DELIVERY' || status === 'DELIVERED' || status === 'STEP_4';
-        let isStep3 = status === 'OUT_FOR_DELIVERY' || status === 'DELIVERED' || status === 'STEP_4';
-        let isStep4 = status === 'DELIVERED' || status === 'STEP_4';
+        let isStep2 = true; // ಅಂಗಡಿ ಪ್ಯಾಕ್ ಮಾಡಿದೆ
+        let isStep3 = true; // ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್ ಮಾಡಿದ್ದಾರೆ
+        let isStep4 = status === 'DELIVERED';
 
         let returnTagHtml = '';
         if (o.isReturned || status === 'RETURNED' || status === 'RETURN_REQUESTED') {
@@ -477,12 +482,13 @@
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <b>ಆರ್ಡರ್ ID: ${o.orderId || o.id}</b>
               <span style="font-size:0.7rem; padding:2px 6px; border-radius:4px; background:${isCourier ? '#e3f2fd' : '#fff3e0'}; color:${isCourier ? '#1565c0' : '#e65100'}; font-weight:bold;">
-                ${isCourier ? '✈️ ಕೊರಿಯರ್ / DTDC (15-20km)' : '🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ (0-5km)'}
+                ${isCourier ? '✈️ ಕೊರಿಯರ್ / DTDC' : '🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ'}
               </span>
             </div>
 
             <div style="margin:6px 0; font-size:0.8rem;">
               <b>ವಸ್ತು:</b> ${o.productName || 'ಚಪ್ಪಲಿ'} | <b>ಬೆಲೆ:</b> ₹${o.totalPrice || 0}<br>
+              <b>ಅಂಗಡಿ ID:</b> ${o.shopId || 'N/A'}<br>
               <b>ಗ್ರಾಹಕರು:</b> ${o.customer ? o.customer.name : 'ಅನಿಲ್ ರಾಥೋಡ್'} (${o.customer ? o.customer.phone : 'N/A'})<br>
               <b>ವಿಳಾಸ:</b> ${o.customer ? o.customer.village : 'ಭೀಮರಾಯನಗುಡಿ, ಶಹಾಪುರ'}
             </div>
@@ -491,8 +497,8 @@
             <div style="background:#fff; border:1px solid #ccc; padding:6px; border-radius:6px; margin:6px 0;">
               <label style="font-size:0.75rem; font-weight:bold;">🚚 ಡೆಲಿವರಿ ಮೋಡ್ ಆಯ್ಕೆ ಮಾಡಿ ಕನ್ಫರ್ಮ್ ಮಾಡಿ:</label>
               <select id="selectMode_${o.id}" style="width:100%; padding:6px; margin-top:4px; border-radius:4px; border:1px solid #999;">
-                <option value="LOCAL" ${!isCourier ? 'selected' : ''}>🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ (ಡೆಲಿವರಿ ಬಾಯ್ & OTP ಕಳುಹಿಸಿ)</option>
-                <option value="COURIER" ${isCourier ? 'selected' : ''}>📦 DTDC ಕೊರಿಯರ್ (OTP ಇಲ್ಲ, ಟ್ರ್ಯಾಕಿಂಗ್ ಮಾತ್ರ)</option>
+                <option value="LOCAL" ${!isCourier ? 'selected' : ''}>🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ (OTP & ಡೆಲಿವರಿ ಬಾಯ್ ರೋಡ್‌ಮ್ಯಾಪ್ ತೋರಿಸಿ)</option>
+                <option value="COURIER" ${isCourier ? 'selected' : ''}>📦 DTDC ಕೊರಿಯರ್ (OTP ರದ್ದುಗೊಳಿಸಿ, ಲೈವ್ ಟ್ರ್ಯಾಕಿಂಗ್ ತೋರಿಸಿ)</option>
               </select>
               <button class="btn btn-success" style="width:100%; margin-top:6px; padding:6px;" onclick="saveAndConfirmOrderMode('${o.id}')">
                 ✔ ಮೋಡ್ ಸೇವ್ ಮಾಡಿ ಕನ್ಫರ್ಮ್ ಮಾಡಿ (Save & Confirm)
@@ -502,12 +508,12 @@
             <!-- 2. CONDITIONAL VISIBILITY: LOCAL (OTP) VS COURIER (AWB) -->
             ${!isCourier ? `
               <div style="background:#e8f5e9; padding:8px; border-radius:6px; margin:6px 0;">
-                🔑 <b>ಗ್ರಾಹಕರ ಡೆಲಿವರಿ ಒಟಿಪಿ (Delivery OTP):</b>
+                🔑 <b>ಗ್ರಾಹಕರಿಗೆ ತೋರಿಸುವ ಡೆಲಿವರಿ ಒಟಿಪಿ (Delivery OTP):</b>
                 <span style="font-size:1.1rem; font-weight:800; color:#2e7d32; margin-left:6px;">${o.deliveryOtp || '1774'}</span>
               </div>
             ` : `
               <div style="background:#e3f2fd; padding:8px; border-radius:6px; margin:6px 0;">
-                📦 <b>DTDC AWB / Tracking Number:</b>
+                📦 <b>DTDC AWB / Tracking Number (ಗ್ರಾಹಕರ ಆ್ಯಪ್‌ನಲ್ಲಿ ಲೈವ್ ಟ್ರ್ಯಾಕಿಂಗ್ ತೋರಿಸಲು):</b>
                 <div style="display:flex; gap:6px; margin-top:4px;">
                   <input type="text" id="trackInput_${o.id}" value="${trackingId}" placeholder="DTDC ನಂಬರ್ ನಮೂದಿಸಿ" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px; text-align:center;">
                   <button class="btn btn-primary" onclick="saveTrackingId('${o.id}')">ಸೇವ್ ಮಾಡಿ</button>
@@ -530,12 +536,10 @@
                 <div class="step-dot ${isStep2 ? 'active' : ''}"></div> 2. ಅಂಗಡಿಯಿಂದ ಪ್ಯಾಕಿಂಗ್ ಆಗಿದೆ
               </div>
               <div class="step-item">
-                <div class="step-dot ${isStep3 ? 'active' : ''}"></div> 
-                3. ${isCourier ? 'DTDC ಕೊರಿಯರ್‌ಗೆ ಕಳುಹಿಸಲಾಗಿದೆ' : 'ಡೆಲಿವರಿ ಬಾಯ್ ಆಫೀಸ್‌ಗೆ ತಂದಿದ್ದಾರೆ'}
+                <div class="step-dot ${isStep3 ? 'active' : ''}"></div> 3. ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್ ಮಾಡಿಕೊಂಡಿದ್ದಾರೆ
               </div>
               <div class="step-item">
-                <div class="step-dot ${isStep4 ? 'active' : ''}"></div> 
-                4. ${isCourier ? 'ಕೊರಿಯರ್ ಮೂಲಕ ಡೆಲಿವರಿ ಆಗಿದೆ' : 'OTP ಹಾಕಿ ಡೆಲಿವರಿ ಮುಗಿದಿದೆ'}
+                <div class="step-dot ${isStep4 ? 'active' : ''}"></div> 4. ಡೆಲಿವರಿ ಯಶಸ್ವಿಯಾಗಿದೆ
               </div>
             </div>
 
@@ -564,7 +568,7 @@
           status: selectedMode === 'LOCAL' ? 'OUT_FOR_DELIVERY' : 'HANDOVER_TO_DTDC',
           updatedAt: window.serverTimestamp()
         });
-        alert(selectedMode === 'LOCAL' ? "🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ ಮೋಡ್ ಕನ್ಫರ್ಮ್ ಆಗಿದೆ! ಡೆಲಿವರಿ ಬಾಯ್‌ಗೆ ಒಟಿಪಿ ಜೊತೆ ಸಂದೇಶ ಹೋಗಿದೆ." : "📦 DTDC ಕೊರಿಯರ್ ಮೋಡ್ ಕನ್ಫರ್ಮ್ ಆಗಿದೆ! ಗ್ರಾಹಕರಿಗೆ ಒಟಿಪಿ ಹೋಗುವುದಿಲ್ಲ.");
+        alert(selectedMode === 'LOCAL' ? "🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ ಮೋಡ್ ಸೆಟ್ ಆಗಿದೆ!" : "📦 DTDC ಕೊರಿಯರ್ ಮೋಡ್ ಸೆಟ್ ಆಗಿದೆ!");
       } catch(e) { alert("Error: " + e.message); }
     }
 
@@ -707,6 +711,7 @@
       });
     }
 
+    // --- SHOP OWNERS & COMMISSION SETTING LOGIC ---
     function renderShops(list) {
       const container = document.getElementById('shopsListContainer');
       if (list.length === 0) {
@@ -720,8 +725,11 @@
         let returnDeduction = shopOrders.reduce((acc, curr) => (curr.status === 'RETURNED' || curr.isReturned) ? acc + Number(curr.totalPrice || 0) : acc, 0);
         
         let netAfterReturn = grossEarnings - returnDeduction;
-        let commission15 = Math.round(netAfterReturn * 0.15);
-        let payableToShop = netAfterReturn - commission15;
+        
+        // ಮಾಲೀಕರು ಸೆಟ್ ಮಾಡಿರುವ ಕಮಿಷನ್ ಪರ್ಸಂಟೇಜ್ (ಡೀಫಾಲ್ಟ್ 15%)
+        let commissionPercent = s.commissionPercent !== undefined ? Number(s.commissionPercent) : 15;
+        let commissionAmount = Math.round(netAfterReturn * (commissionPercent / 100));
+        let payableToShop = netAfterReturn - commissionAmount;
         if (payableToShop < 0) payableToShop = 0;
 
         const now = Date.now();
@@ -744,15 +752,19 @@
               </div>
             </div>
 
-            <div style="background:#fff3e0; padding:8px; border-radius:6px; margin:6px 0; display:flex; gap:6px; align-items:center;">
-              <input type="text" id="checkShopIdInput_${s.id}" value="${s.id}" placeholder="ಅಂಗಡಿ ID" style="padding:4px; font-size:0.8rem; width:80px; text-align:center; border:1px solid #ccc; border-radius:4px;">
-              <button class="btn btn-primary" onclick="openShopProducts('${s.id}')" style="padding:5px 10px; font-size:0.75rem;">ಈ ಅಂಗಡಿಯ ವಸ್ತುಗಳನ್ನು ನೋಡಿ</button>
+            <!-- COMMISSION PERCENTAGE EDIT & SAVE SETTING -->
+            <div style="background:#fff3e0; padding:8px; border-radius:6px; margin:6px 0;">
+              <label style="font-size:0.75rem; font-weight:bold;">⚙️ ಕಮಿಷನ್ ಚಾರ್ಜಸ್ (%) ಸೆಟ್ಟಿಂಗ್ಸ್:</label>
+              <div style="display:flex; gap:6px; margin-top:4px;">
+                <input type="number" id="commissionInput_${s.docId}" value="${commissionPercent}" min="0" max="100" style="width:80px; padding:4px; text-align:center; border:1px solid #ccc; border-radius:4px; font-weight:bold;">
+                <button class="btn btn-primary" style="flex:1; padding:6px; font-size:0.75rem;" onclick="saveShopCommission('${s.docId}')">💾 ಪರ್ಸೆಂಟ್ ಸೇವ್ ಮಾಡಿ</button>
+              </div>
             </div>
 
             <div style="background:#e8f4fd; padding:8px; border-radius:6px; margin:6px 0; font-size:0.78rem; line-height:1.4;">
-              📊 <b>ಲೆಕ್ಕಾಚಾರ:</b><br>
+              📊 <b>ಲೆಕ್ಕಾಚಾರ (${commissionPercent}% ಕಮಿಷನ್ ಪ್ರಕಾರ):</b><br>
               • ಒಟ್ಟು ಮಾರಾಟ: ₹${grossEarnings} (ರಿಟರ್ನ್ ಕಡಿತ: -₹${returnDeduction})<br>
-              • 15% ಕಮಿಷನ್: ₹${commission15} | <b>ನೀಡಬೇಕಾದ ಮೊತ್ತ: ₹${payableToShop}</b>
+              • ಕಮಿಷನ್ (${commissionPercent}%): ₹${commissionAmount} | <b>ಅಂಗಡಿಗೆ ನೀಡಬೇಕಾದ ಮೊತ್ತ: ₹${payableToShop}</b>
             </div>
 
             <div style="margin-top:6px; display:flex; gap:6px; align-items:center;">
@@ -782,6 +794,22 @@
       }).join('');
     }
 
+    async function saveShopCommission(docId) {
+      const inputVal = document.getElementById(`commissionInput_${docId}`).value;
+      const percent = Number(inputVal);
+      if (isNaN(percent) || percent < 0 || percent > 100) {
+        alert("ದಯವಿಟ್ಟು 0 ಯಿಂದ 100ರ ನಡುವಿನ ಸರಿಯಾದ ಪರ್ಸಂಟೇಜ್ ನಮೂದಿಸಿ.");
+        return;
+      }
+      try {
+        await window.updateDoc(window.doc(window.db, "shop_owners", docId), {
+          commissionPercent: percent,
+          updatedAt: window.serverTimestamp()
+        });
+        alert(`✅ ಅಂಗಡಿಯ ಕಮಿಷನ್ ${percent}% ಯಶಸ್ವಿಯಾಗಿ ಸೇವ್ ಮಾಡಲಾಗಿದೆ!`);
+      } catch(e) { alert("Error: " + e.message); }
+    }
+
     async function toggleShopPaymentSuccess(docId, currentStatus) {
       try {
         const newStatus = !currentStatus;
@@ -791,29 +819,6 @@
         alert(newStatus ? "✅ ಅಂಗಡಿ ಮಾಲೀಕರಿಗೆ ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಎಂದು ಅಪ್‌ಡೇಟ್ ಮಾಡಲಾಗಿದೆ!" : "⏳ ಪೇಮೆಂಟ್ ಬಾಕಿ ಎಂದು ಬದಲಾಯಿಸಲಾಗಿದೆ.");
       } catch(e) { alert("Error: " + e.message); }
     }
-
-    function openShopProducts(shopId) {
-      let filteredProds = allProducts.filter(p => String(p.shopId) === String(shopId));
-      let container = document.getElementById('shopProductsListContainer');
-      document.getElementById('shopProductsModalTitle').innerText = `ಅಂಗಡಿ ID (${shopId}) ರ ಪ್ರಾಡಕ್ಟ್‌ಗಳು (${filteredProds.length})`;
-
-      if (filteredProds.length === 0) {
-        container.innerHTML = '<p style="color:#777; text-align:center; padding:15px;">ಈ ಅಂಗಡಿಯಲ್ಲಿ ಯಾವುದೇ ಪ್ರಾಡಕ್ಟ್‌ಗಳಿಲ್ಲ.</p>';
-      } else {
-        container.innerHTML = filteredProds.map(p => `
-          <div style="display:flex; gap:8px; align-items:center; border-bottom:1px solid #eee; padding:6px 0;">
-            <img src="${p.photo || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; object-fit:contain; background:#fff; border-radius:4px; border:1px solid #ddd; cursor:pointer;" onclick="openImageModal('${p.photo}', '${p.name}')">
-            <div style="flex:1;">
-              <div style="font-weight:bold; font-size:0.8rem;">${p.name}</div>
-              <div style="font-size:0.75rem; color:#2e7d32; font-weight:bold;">₹${p.price}</div>
-            </div>
-          </div>
-        `).join('');
-      }
-      document.getElementById('shopProductsModal').style.display = 'flex';
-    }
-
-    function closeShopProductsModal() { document.getElementById('shopProductsModal').style.display = 'none'; }
 
     async function toggleShopPayment(docId, currentStatus) {
       try {
@@ -851,7 +856,7 @@
       }
 
       container.innerHTML = list.map(db => {
-        let deliveredCount = allOrders.filter(o => o.status === 'DELIVERED' || o.status === 'STEP_4').length;
+        let deliveredCount = allOrders.filter(o => o.status === 'DELIVERED').length;
         let totalDboyEarnings = (deliveredCount * 100) + Math.round(deliveredCount * 50);
 
         let dboyQrPhoto = db.qrPhoto || db.customQrPhoto || '';
