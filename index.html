@@ -106,7 +106,8 @@
     .btn-success { background: var(--success); }
     .btn-primary { background: var(--secondary); }
 
-    .banner-preview-img { width: 100%; height: auto; max-height: 250px; object-fit: contain; background: #fff; border-radius: 6px; margin-bottom: 6px; border: 1px solid #ccc; display: block; }
+    /* ಜಾಹೀರಾತು ಬ್ಯಾನರ್ ಫುಲ್ ಹಾಗೂ ಕಟ್ ಆಗದಂತೆ ಕಾಣಲು */
+    .banner-preview-img { width: 100%; height: auto; max-height: 220px; object-fit: cover; background: #fff; border-radius: 6px; margin-bottom: 6px; border: 1px solid #ccc; display: block; }
     
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 10000; padding: 15px; }
     .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 400px; width: 100%; text-align: center; max-height: 90vh; overflow-y: auto; }
@@ -173,7 +174,7 @@
 
     <input type="text" id="masterSearch" class="search-input" placeholder="🔍 ಹೆಸರು, ಐಡಿ ಅಥವಾ ಆರ್ಡರ್ ನಂಬರ್ ಬಳಸಿ ಹುಡುಕಿ..." oninput="filterMasterData()">
 
-    <!-- TAB 0: LIVE DUAL ORDERS (LOCAL + DTDC) -->
+    <!-- TAB 0: LIVE ORDERS -->
     <div id="ordersTab">
       <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🚚 ಗ್ರಾಹಕರು ಆರ್ಡರ್ ಮಾಡಿದ ಹಾಗೂ ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್-ಅಪ್ ಆದ ಲೈವ್ ಆರ್ಡರ್‌ಗಳು</h3>
       <div id="ordersListContainer"></div>
@@ -216,7 +217,7 @@
       <div id="customersListContainer"></div>
     </div>
 
-    <!-- TAB 6: RETURNS & URGENT ORDERS -->
+    <!-- TAB 6: RETURNS -->
     <div id="returnsTab" style="display:none;">
       <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🔄 ರಿಟರ್ನ್ ಆರ್ಡರ್ ಪೇಮೆಂಟ್</h3>
       <div id="returnsListContainer"></div>
@@ -455,7 +456,7 @@
       } catch(e) { alert("Error: " + e.message); }
     }
 
-    // --- ಅಂಗಡಿ ಮಾಲೀಕರ ಕಮಿಷನ್ ಎಡಿಟ್ ಮತ್ತು ಸೇವ್ ಫಂಕ್ಷನ್ ---
+    // --- ಅಂಗಡಿ ಮಾಲೀಕರ ಪಟ್ಟಿ & ಡಿಲೀಟ್ ಹಾಗೂ ಕಮಿಷನ್ ಎಡಿಟ್ ---
     function renderShops(list) {
       const container = document.getElementById('shopsListContainer');
       if (list.length === 0) {
@@ -472,6 +473,10 @@
             <input type="number" id="commInput_${s.docId}" value="${s.commissionPercent !== undefined ? s.commissionPercent : 12}" style="width:70px; padding:4px; font-weight:bold; text-align:center;">
             <button class="btn btn-success" style="padding:6px 10px;" onclick="saveShopCommission('${s.docId}')">💾 ಸೇವ್</button>
           </div>
+
+          <div style="margin-top:8px; text-align:right;">
+            <button class="btn btn-danger" onclick="deleteShopCompletely('${s.docId}', '${s.id}')">🗑️ ಅಂಗಡಿ ಸಂಪೂರ್ಣ ಡಿಲೀಟ್ ಮಾಡಿ</button>
+          </div>
         </div>
       `).join('');
     }
@@ -485,6 +490,26 @@
         });
         alert("✅ ಅಂಗಡಿ ಮಾಲೀಕರ ಕಮಿಷನ್ ಪರ್ಸೆಂಟೇಜ್ ಯಶಸ್ವಿಯಾಗಿ ಸೇವ್ ಮಾಡಲಾಗಿದೆ!");
       } catch(e) { alert("Error: " + e.message); }
+    }
+
+    async function deleteShopCompletely(docId, shopIdNumber) {
+      if (confirm("ಎಚ್ಚರಿಕೆ! ಈ ಅಂಗಡಿಯನ್ನು ಡಿಲೀಟ್ ಮಾಡಿದರೆ, ಅವರ ಖಾತೆ ಹಾಗೂ ಅವರು ಅಪ್‌ಲೋಡ್ ಮಾಡಿದ ಎಲ್ಲಾ ವಸ್ತುಗಳು ಸಂಪೂರ್ಣವಾಗಿ ಡಿಲೀಟ್ ಆಗುತ್ತವೆ. ಮುಂದುವರಿಸುವುದೇ?")) {
+        try {
+          // ಅಂಗಡಿ ದಾಖಲೆ ಡಿಲೀಟ್
+          await window.deleteDoc(window.doc(window.db, "shop_owners", docId));
+          
+          // ಈ ಅಂಗಡಿಗೆ ಸಂಬಂಧಿಸಿದ ವಸ್ತುಗಳನ್ನು (products) ಹುಡುಕಿ ಡಿಲೀಟ್ ಮಾಡುವುದು
+          const prodQ = window.query(window.collection(window.db, "products"), window.where("shopId", "==", shopIdNumber));
+          const prodSnap = await window.getDocs(prodQ);
+          prodSnap.asyncForEach ? await prodSnap.asyncForEach(async (pDoc) => {
+            await window.deleteDoc(pDoc.ref);
+          }) : prodSnap.forEach(async (pDoc) => {
+            await window.deleteDoc(pDoc.ref);
+          });
+
+          alert("✅ ಅಂಗಡಿ ಮತ್ತು ಅವರ ಎಲ್ಲಾ ವಸ್ತುಗಳು ಸಂಪೂರ್ಣವಾಗಿ ಡಿಲೀಟ್ ಆಗಿವೆ.");
+        } catch(e) { alert("Error: " + e.message); }
+      }
     }
 
     async function uploadBannerImage() {
@@ -607,7 +632,14 @@
         container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ಇಲ್ಲ.</p>';
         return;
       }
-      container.innerHTML = list.map(db => `<div class="card-box"><b>${db.name}</b> - ID: ${db.id}</div>`).join('');
+      container.innerHTML = list.map(db => `
+        <div class="card-box">
+          <b>${db.name}</b> - ID: ${db.id} (ಫೋನ್: ${db.phone})<br>
+          <div style="margin-top:6px; text-align:right;">
+            <button class="btn btn-danger" onclick="deleteRecord('delivery_boys', '${db.docId}', 'ಡೆಲಿವರಿ ಬಾಯ್')">🗑️ ಡಿಲೀಟ್ ಮಾಡಿ</button>
+          </div>
+        </div>
+      `).join('');
     }
 
     function renderCustomers(list) {
@@ -621,6 +653,9 @@
           <b>ಗ್ರಾಹಕರು:</b> ${c.name || 'ಅಜ್ಞಾತ'} (${c.phone})<br>
           ಊರು: ${c.village || 'ಸ್ಥಳವಿಲ್ಲ'}<br>
           <b>ಖರೀದಿ:</b> ${c.ordersCount || 0} | <b>ರಿಟರ್ನ್:</b> ${c.returnsCount || 0}
+          <div style="margin-top:6px; text-align:right;">
+            <button class="btn btn-danger" onclick="deleteRecord('customers_meta', '${c.docId}', 'ಗ್ರಾಹಕ')">🗑️ ಡಿಲೀಟ್ ಮಾಡಿ</button>
+          </div>
         </div>
       `).join('');
     }
