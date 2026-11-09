@@ -366,11 +366,17 @@
           let oData = d.data();
           let orderTime = oData.createdAt ? oData.createdAt.toMillis() : (oData.timestamp || Date.now());
           
-          // Auto-hide or ignore orders older than 1 month if delivered/returned
           if ((oData.status === 'DELIVERED' || oData.status === 'RETURNED') && orderTime < thirtyDaysAgo) {
-            return; // Skip rendering old orders older than 1 month
+            return; // 1 ತಿಂಗಳ ನಂತರ ಹಳೆ ಆರ್ಡರ್‌ಗಳು ಆಟೋಮ್ಯಾಟಿಕ್ ಆಗಿ ಹೈಡ್ ಆಗುತ್ತವೆ
           }
           allOrders.push({ id: d.id, ...oData });
+        });
+
+        // ಹೊಸ ಆರ್ಡರ್‌ಗಳು ಮೇಲ್ಭಾಗದಲ್ಲಿ ಕಾಣುವಂತೆ ವಿಂಗಡಣೆ (Sorting by newest first)
+        allOrders.sort((a, b) => {
+          let timeA = a.createdAt ? a.createdAt.toMillis() : (a.timestamp || 0);
+          let timeB = b.createdAt ? b.createdAt.toMillis() : (b.timestamp || 0);
+          return timeB - timeA;
         });
 
         localStorage.setItem('cache_orders', JSON.stringify(allOrders));
@@ -483,17 +489,20 @@
 
             <!-- 1. DYNAMIC DELIVERY TYPE DROPDOWN -->
             <div style="background:#fff; border:1px solid #ccc; padding:6px; border-radius:6px; margin:6px 0;">
-              <label style="font-size:0.75rem; font-weight:bold;">🚚 ಡೆಲಿವರಿ ಮೋಡ್ ಬದಲಾಯಿಸಿ:</label>
-              <select onchange="updateDeliveryMode('${o.id}', this.value)" style="width:100%; padding:6px; margin-top:4px; border-radius:4px; border:1px solid #999;">
-                <option value="LOCAL" ${!isCourier ? 'selected' : ''}>🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ (0-5 km - OTP ಸಿಸ್ಟಮ್)</option>
-                <option value="COURIER" ${isCourier ? 'selected' : ''}>📦 DTDC / ಕೊರಿಯರ್ (15-20 km - ಟ್ರ್ಯಾಕಿಂಗ್)</option>
+              <label style="font-size:0.75rem; font-weight:bold;">🚚 ಡೆಲಿವರಿ ಮೋಡ್ ಆಯ್ಕೆ ಮಾಡಿ ಕನ್ಫರ್ಮ್ ಮಾಡಿ:</label>
+              <select id="selectMode_${o.id}" style="width:100%; padding:6px; margin-top:4px; border-radius:4px; border:1px solid #999;">
+                <option value="LOCAL" ${!isCourier ? 'selected' : ''}>🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ (ಡೆಲಿವರಿ ಬಾಯ್ & OTP ಕಳುಹಿಸಿ)</option>
+                <option value="COURIER" ${isCourier ? 'selected' : ''}>📦 DTDC ಕೊರಿಯರ್ (OTP ಇಲ್ಲ, ಟ್ರ್ಯಾಕಿಂಗ್ ಮಾತ್ರ)</option>
               </select>
+              <button class="btn btn-success" style="width:100%; margin-top:6px; padding:6px;" onclick="saveAndConfirmOrderMode('${o.id}')">
+                ✔ ಮೋಡ್ ಸೇವ್ ಮಾಡಿ ಕನ್ಫರ್ಮ್ ಮಾಡಿ (Save & Confirm)
+              </button>
             </div>
 
             <!-- 2. CONDITIONAL VISIBILITY: LOCAL (OTP) VS COURIER (AWB) -->
             ${!isCourier ? `
               <div style="background:#e8f5e9; padding:8px; border-radius:6px; margin:6px 0;">
-                🔑 <b>ನಿಮ್ಮ ಡೆಲಿವರಿ ಒಟಿಪಿ (Delivery OTP):</b>
+                🔑 <b>ಗ್ರಾಹಕರ ಡೆಲಿವರಿ ಒಟಿಪಿ (Delivery OTP):</b>
                 <span style="font-size:1.1rem; font-weight:800; color:#2e7d32; margin-left:6px;">${o.deliveryOtp || '1774'}</span>
               </div>
             ` : `
@@ -522,11 +531,11 @@
               </div>
               <div class="step-item">
                 <div class="step-dot ${isStep3 ? 'active' : ''}"></div> 
-                3. ${isCourier ? 'DTDC ಕೊರಿಯರ್‌ಗೆ ಹಸ್ತಾಂತರಿಸಲಾಗಿದೆ (Handover)' : 'ಡೆಲಿವರಿ ಬಾಯ್ ಆಫೀಸ್‌ಗೆ ತಂದಿದ್ದಾರೆ'}
+                3. ${isCourier ? 'DTDC ಕೊರಿಯರ್‌ಗೆ ಕಳುಹಿಸಲಾಗಿದೆ' : 'ಡೆಲಿವರಿ ಬಾಯ್ ಆಫೀಸ್‌ಗೆ ತಂದಿದ್ದಾರೆ'}
               </div>
               <div class="step-item">
                 <div class="step-dot ${isStep4 ? 'active' : ''}"></div> 
-                4. ${isCourier ? 'ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಮೂಲಕ ಡೆಲಿವರಿ ಆಗಿದೆ' : 'OTP ಹಾಕಿ ಡೆಲಿವರಿ ಯಶಸ್ವಿಯಾಗಿದೆ'}
+                4. ${isCourier ? 'ಕೊರಿಯರ್ ಮೂಲಕ ಡೆಲಿವರಿ ಆಗಿದೆ' : 'OTP ಹಾಕಿ ಡೆಲಿವರಿ ಮುಗಿದಿದೆ'}
               </div>
             </div>
 
@@ -538,7 +547,7 @@
                 </button>
               ` : `
                 <span style="color:var(--success); font-weight:bold; font-size:0.85rem; width:100%; text-align:center;">
-                  ✅ ಡೆಲಿವರಿ ಯಶಸ್ವಿಯಾಗಿ ಪೂರ್ಣಗೊಂಡಿದೆ! (1 ತಿಂಗಳವರೆಗೆ ಲಭ್ಯ)
+                  ✅ ಡೆಲಿವರಿ ಯಶಸ್ವಿಯಾಗಿ ಪೂರ್ಣಗೊಂಡಿದೆ!
                 </span>
               `}
             </div>
@@ -547,13 +556,15 @@
       }).join('');
     }
 
-    async function updateDeliveryMode(orderDocId, mode) {
+    async function saveAndConfirmOrderMode(orderDocId) {
+      const selectedMode = document.getElementById(`selectMode_${orderDocId}`).value;
       try {
         await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
-          deliveryMode: mode,
+          deliveryMode: selectedMode,
+          status: selectedMode === 'LOCAL' ? 'OUT_FOR_DELIVERY' : 'HANDOVER_TO_DTDC',
           updatedAt: window.serverTimestamp()
         });
-        alert(mode === 'COURIER' ? "✈️ DTDC ಕೊರಿಯರ್ ಮೋಡ್‌ಗೆ ಬದಲಾಯಿಸಲಾಗಿದೆ!" : "🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ ಮೋಡ್‌ಗೆ ಬದಲಾಯಿಸಲಾಗಿದೆ.");
+        alert(selectedMode === 'LOCAL' ? "🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ ಮೋಡ್ ಕನ್ಫರ್ಮ್ ಆಗಿದೆ! ಡೆಲಿವರಿ ಬಾಯ್‌ಗೆ ಒಟಿಪಿ ಜೊತೆ ಸಂದೇಶ ಹೋಗಿದೆ." : "📦 DTDC ಕೊರಿಯರ್ ಮೋಡ್ ಕನ್ಫರ್ಮ್ ಆಗಿದೆ! ಗ್ರಾಹಕರಿಗೆ ಒಟಿಪಿ ಹೋಗುವುದಿಲ್ಲ.");
       } catch(e) { alert("Error: " + e.message); }
     }
 
@@ -566,7 +577,7 @@
           status: 'OUT_FOR_DELIVERY',
           updatedAt: window.serverTimestamp()
         });
-        alert("✅ DTDC ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಯಶಸ್ವಿಯಾಗಿ ಆಪ್‌ನಲ್ಲಿ ಸೇವ್ ಆಗಿದೆ!");
+        alert("✅ DTDC ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಯಶಸ್ವಿಯಾಗಿ ಸೇವ್ ಆಗಿದೆ!");
       } catch(e) { alert("Error: " + e.message); }
     }
 
