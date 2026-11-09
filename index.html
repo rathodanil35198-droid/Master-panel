@@ -105,8 +105,8 @@
     .btn-danger { background: #e53935; }
     .btn-success { background: var(--success); }
     .btn-primary { background: var(--secondary); }
+    .btn-warning { background: #f57c00; }
 
-    /* ಜಾಹೀರಾತು ಬ್ಯಾನರ್ ಫುಲ್ ಹಾಗೂ ಕಟ್ ಆಗದಂತೆ ಕಾಣಲು */
     .banner-preview-img { width: 100%; height: auto; max-height: 220px; object-fit: cover; background: #fff; border-radius: 6px; margin-bottom: 6px; border: 1px solid #ccc; display: block; }
     
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 10000; padding: 15px; }
@@ -180,7 +180,7 @@
       <div id="ordersListContainer"></div>
     </div>
 
-    <!-- TAB 1: SHOP OWNERS & COMMISSION EDITING -->
+    <!-- TAB 1: SHOP OWNERS -->
     <div id="shopsTab" style="display:none;">
       <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🏪 ಲಾಗಿನ್ ಆಗಿರುವ ಅಂಗಡಿ ಮಾಲೀಕರು & ಕಮಿಷನ್ ಎಡಿಟ್ ಸೆಟ್ಟಿಂಗ್ಸ್</h3>
       <div id="shopsListContainer"></div>
@@ -410,14 +410,22 @@
         } else if (deliveryMode === 'COURIER') {
           modeDetailsHtml = `
             <div style="background:#fff3e0; padding:8px; border-radius:6px; margin:6px 0;">
-              <span style="font-size:0.8rem; color:#e65100; font-weight:bold;">📦 DTDC ಕೊರಿಯರ್ ಟ್ರ್ಯಾಕಿಂಗ್:</span>
+              <span style="font-size:0.8rem; color:#e65100; font-weight:bold;">📦 DTDC ಕೊರಿಯರ್ ಟ್ರ್ಯಾಕಿಂಗ್ & ಲೈವ್ ಲೊಕೇಶನ್:</span>
               <div style="display:flex; gap:6px; margin-top:4px;">
                 <input type="text" id="trackInput_${o.id}" value="${trackingId}" placeholder="DTDC AWB ನಂಬರ್" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
                 <button class="btn btn-primary" onclick="saveCourierTracking('${o.id}')">ಸೇವ್</button>
               </div>
+              ${trackingId ? `<div style="margin-top:6px; font-size:0.75rem; color:#388e3c; font-weight:bold;">📍 ಲೈವ್ ಟ್ರ್ಯಾಕಿಂಗ್ ಆಕ್ಟಿವ್ ಇದೆ (AWB: ${trackingId})</div>` : ''}
+              
+              <div style="margin-top:8px; display:flex; gap:6px;">
+                <button class="btn btn-success" style="flex:1;" onclick="confirmCourierDelivery('${o.id}')">✔ ಡೆಲಿವರಿ ಕನ್ಫರ್ಮ್ ಮಾಡಿ</button>
+                <button class="btn btn-danger" style="flex:1;" onclick="markCourierReturn('${o.id}')">🔄 DTDC ರಿಟರ್ನ್ ಘೋಷಿಸಿ</button>
+              </div>
             </div>
           `;
         }
+
+        let returnNotice = o.isReturned ? `<div style="background:#ffebee; color:#c62828; padding:6px; border-radius:4px; margin-top:4px; font-weight:bold;">⚠️ DTDC ಮುಖಾಂತರ ರಿಟರ್ನ್ ಬಂದಿದೆ! ಅಂಗಡಿಗೆ ಸೂಚನೆ ಕಳುಹಿಸಲಾಗಿದೆ.</div>` : '';
 
         return `
           <div class="card-box" style="border-left:4px solid ${isPickedUpByDboy ? 'var(--success)' : 'var(--primary)'};">
@@ -425,6 +433,7 @@
             <b>ವಸ್ತು:</b> ${o.productName} - ₹${o.totalPrice}<br>
             <b>ಅಂಗಡಿ:</b> ${o.shopName || 'Store'} | <b>ಗ್ರಾಹಕರು:</b> ${o.customer?.name} (${o.customer?.phone})<br>
             <b>ಸ್ಥಿತಿ:</b> ${o.status} ${isPickedUpByDboy ? ' | 🛵 ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್ ಮಾಡಿದ್ದಾರೆ' : ''}
+            ${returnNotice}
             ${updateNeededHtml}
             ${modeDetailsHtml}
           </div>
@@ -452,33 +461,80 @@
           trackingId: trackVal,
           updatedAt: window.serverTimestamp()
         });
-        alert("✅ DTDC ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಸೇವ್ ಆಗಿದೆ!");
+        alert("✅ DTDC ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಮತ್ತು ಲೈವ್ ಲೊಕೇಶನ್ ಅಪ್‌ಡೇಟ್ ಆಗಿದೆ!");
       } catch(e) { alert("Error: " + e.message); }
     }
 
-    // --- ಅಂಗಡಿ ಮಾಲೀಕರ ಪಟ್ಟಿ & ಡಿಲೀಟ್ ಹಾಗೂ ಕಮಿಷನ್ ಎಡಿಟ್ ---
+    async function confirmCourierDelivery(orderDocId) {
+      if (confirm("ಈ DTDC ಆರ್ಡರ್ ಡೆಲಿವರಿ ಕನ್ಫರ್ಮ್ ಮಾಡುವುದೇ?")) {
+        try {
+          await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
+            status: 'DELIVERED',
+            isDelivered: true,
+            updatedAt: window.serverTimestamp()
+          });
+          alert("🎉 ಡೆಲಿವರಿ ಯಶಸ್ವಿಯಾಗಿ ಕನ್ಫರ್ಮ್ ಆಗಿದೆ!");
+        } catch(e) { alert("Error: " + e.message); }
+      }
+    }
+
+    async function markCourierReturn(orderDocId) {
+      if (confirm("ಈ ಆರ್ಡರ್ DTDC ಮುಖಾಂತರ ರಿಟರ್ನ್ ಬಂದಿದೆ ಎಂದು ಗುರುತಿಸುವುದೇ? ಅಂಗಡಿಗೆ ಆಟೋಮೆಟಿಕ್ ಸಂದೇಶ ಹೋಗುತ್ತದೆ.")) {
+        try {
+          await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
+            isReturned: true,
+            status: 'RETURN_COMPLETED',
+            updatedAt: window.serverTimestamp()
+          });
+          alert("🔄 DTDC ರಿಟರ್ನ್ ಕನ್ಫರ್ಮ್ ಆಗಿದೆ! ಅಂಗಡಿ ಮಾಲೀಕರಿಗೆ ಆಟೋಮೆಟಿಕ್ ಮೆಸೇಜ್ ತಲುಪಿದೆ.");
+        } catch(e) { alert("Error: " + e.message); }
+      }
+    }
+
+    // --- ಅಂಗಡಿ ಮಾಲೀಕರ ಪಟ್ಟಿ, QR ಕೋಡ್, ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ & ಕಮಿಷನ್ ---
     function renderShops(list) {
       const container = document.getElementById('shopsListContainer');
       if (list.length === 0) {
         container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಅಂಗಡಿ ಮಾಲೀಕರಿಲ್ಲ.</p>';
         return;
       }
-      container.innerHTML = list.map(s => `
-        <div class="card-box">
-          <b>ಅಂಗಡಿ:</b> ${s.shopName} (${s.name}) - ID: ${s.id}<br>
-          <b>ವಿಭಾಗ:</b> ${s.shopType || 'ಇತರ'} | <b>ಫೋನ್:</b> ${s.phone}<br>
-          
-          <div style="margin-top:8px; background:#e3f2fd; padding:8px; border-radius:6px; display:flex; align-items:center; gap:8px;">
-            <label style="font-size:0.75rem; font-weight:bold; color:#1565c0;">ಕಮಿಷನ್ ಪರ್ಸೆಂಟೇಜ್ (%):</label>
-            <input type="number" id="commInput_${s.docId}" value="${s.commissionPercent !== undefined ? s.commissionPercent : 12}" style="width:70px; padding:4px; font-weight:bold; text-align:center;">
-            <button class="btn btn-success" style="padding:6px 10px;" onclick="saveShopCommission('${s.docId}')">💾 ಸೇವ್</button>
-          </div>
+      container.innerHTML = list.map(s => {
+        let membershipPaid = s.membershipPaid === true;
+        let qrCodeImg = s.qrCode || s.photo || 'https://via.placeholder.com/120';
+        let productsUploadedCount = s.productsCount || 0;
 
-          <div style="margin-top:8px; text-align:right;">
-            <button class="btn btn-danger" onclick="deleteShopCompletely('${s.docId}', '${s.id}')">🗑️ ಅಂಗಡಿ ಸಂಪೂರ್ಣ ಡಿಲೀಟ್ ಮಾಡಿ</button>
+        return `
+          <div class="card-box">
+            <div style="display:flex; gap:10px; align-items:center;">
+              <img src="${qrCodeImg}" style="width:60px; height:60px; object-fit:cover; border-radius:6px; border:1px solid #ccc; cursor:pointer;" onclick="openImageModal('${qrCodeImg}', 'ಅಂಗಡಿ ಕ್ಯೂಆರ್ ಕೋಡ್ - ${s.shopName}')" title="ಕ್ಲಿಕ್ ಮಾಡಿ ದೊಡ್ಡದಾಗಿ ನೋಡಿ">
+              <div>
+                <b>ಅಂಗಡಿ:</b> ${s.shopName} (${s.name}) - ID: ${s.id}<br>
+                <b>ವಿಭಾಗ:</b> ${s.shopType || 'ಇತರ'} | <b>ಫೋನ್:</b> ${s.phone}<br>
+                <span style="font-size:0.75rem; color:#666;">ಅಪ್‌ಲೋಡ್ ಮಾಡಿದ ವಸ್ತುಗಳು: ${productsUploadedCount}</span>
+              </div>
+            </div>
+
+            <div style="margin-top:8px; background:#e3f2fd; padding:8px; border-radius:6px; display:flex; align-items:center; gap:8px;">
+              <label style="font-size:0.75rem; font-weight:bold; color:#1565c0;">ಕಮಿಷನ್ ಪರ್ಸೆಂಟೇಜ್ (%):</label>
+              <input type="number" id="commInput_${s.docId}" value="${s.commissionPercent !== undefined ? s.commissionPercent : 5}" style="width:70px; padding:4px; font-weight:bold; text-align:center;">
+              <button class="btn btn-success" style="padding:6px 10px;" onclick="saveShopCommission('${s.docId}')">💾 ಸೇವ್</button>
+            </div>
+
+            <div style="margin-top:8px; display:flex; gap:6px; align-items:center; justify-content:space-between; background:#fff3e0; padding:6px 8px; border-radius:6px;">
+              <span style="font-size:0.8rem; font-weight:bold; color:${membershipPaid ? 'var(--success)' : '#d32f2f'};">
+                ${membershipPaid ? '✅ ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಆಗಿದೆ' : '⏳ ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಂಡಿಂಗ್ ಇದೆ'}
+              </span>
+              <button class="btn ${membershipPaid ? 'btn-danger' : 'btn-success'}" style="padding:4px 8px; font-size:0.7rem;" onclick="toggleMembership('${s.docId}', ${!membershipPaid})">
+                ${membershipPaid ? 'ಪೇಮೆಂಟ್ ರದ್ದುಮಾಡಿ' : '✔ ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಮಾಡಿ'}
+              </button>
+            </div>
+
+            <div style="margin-top:8px; text-align:right;">
+              <button class="btn btn-danger" onclick="deleteShopCompletely('${s.docId}', '${s.id}')">🗑️ ಅಂಗಡಿ ಸಂಪೂರ್ಣ ಡಿಲೀಟ್ ಮಾಡಿ</button>
+            </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     async function saveShopCommission(docId) {
@@ -492,18 +548,24 @@
       } catch(e) { alert("Error: " + e.message); }
     }
 
+    async function toggleMembership(docId, status) {
+      try {
+        await window.updateDoc(window.doc(window.db, "shop_owners", docId), {
+          membershipPaid: status,
+          updatedAt: window.serverTimestamp()
+        });
+        alert(status ? "✅ ಅಂಗಡಿ ಮಾಲೀಕರ ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಮಾಡಲಾಗಿದೆ!" : "ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ ಅಪ್‌ಡೇಟ್ ಆಗಿದೆ.");
+      } catch(e) { alert("Error: " + e.message); }
+    }
+
     async function deleteShopCompletely(docId, shopIdNumber) {
       if (confirm("ಎಚ್ಚರಿಕೆ! ಈ ಅಂಗಡಿಯನ್ನು ಡಿಲೀಟ್ ಮಾಡಿದರೆ, ಅವರ ಖಾತೆ ಹಾಗೂ ಅವರು ಅಪ್‌ಲೋಡ್ ಮಾಡಿದ ಎಲ್ಲಾ ವಸ್ತುಗಳು ಸಂಪೂರ್ಣವಾಗಿ ಡಿಲೀಟ್ ಆಗುತ್ತವೆ. ಮುಂದುವರಿಸುವುದೇ?")) {
         try {
-          // ಅಂಗಡಿ ದಾಖಲೆ ಡಿಲೀಟ್
           await window.deleteDoc(window.doc(window.db, "shop_owners", docId));
           
-          // ಈ ಅಂಗಡಿಗೆ ಸಂಬಂಧಿಸಿದ ವಸ್ತುಗಳನ್ನು (products) ಹುಡುಕಿ ಡಿಲೀಟ್ ಮಾಡುವುದು
           const prodQ = window.query(window.collection(window.db, "products"), window.where("shopId", "==", shopIdNumber));
           const prodSnap = await window.getDocs(prodQ);
-          prodSnap.asyncForEach ? await prodSnap.asyncForEach(async (pDoc) => {
-            await window.deleteDoc(pDoc.ref);
-          }) : prodSnap.forEach(async (pDoc) => {
+          prodSnap.forEach(async (pDoc) => {
             await window.deleteDoc(pDoc.ref);
           });
 
@@ -550,7 +612,7 @@
       }
       container.innerHTML = list.map(b => `
         <div class="card-box">
-          <img src="${b.imageUrl}" class="banner-preview-img" onclick="openImageModal('${b.imageUrl}', 'ಜಾಹೀರಾತು ಬ್ಯಾನರ್')" style="cursor:pointer;">
+          <img src="${b.imageUrl}" class="banner-preview-img" onclick="openImageModal('${b.imageUrl}', 'ಜಾಹೀರಾತು ಬ್ಯಾನರ್')" style="cursor:pointer;" title="ಕ್ಲಿಕ್ ಮಾಡಿ ದೊಡ್ಡದಾಗಿ ನೋಡಿ">
           <div style="text-align:right; margin-top:6px;">
             <button class="btn btn-danger" onclick="deleteRecord('master_banners', '${b.docId}', 'ಬ್ಯಾನರ್')">ಡಿಲೀಟ್ ಮಾಡಿ</button>
           </div>
@@ -559,7 +621,7 @@
     }
 
     async function deleteRecord(colName, docId, name) {
-      if (confirm(`ಈ ${name} ಅನ್ನು ಡಿಲೀಟ್ ಮಾಡಲು ಬಯಸುವಿರಾ?`)) {
+      if (confirm(`ಈ ${name} ಅನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಡಿಲೀಟ್ ಮಾಡಲು ಬಯಸುವಿರಾ?`)) {
         try {
           await window.deleteDoc(window.doc(window.db, colName, docId));
           alert("ಯಶಸ್ವಿಯಾಗಿ ಡಿಲೀಟ್ ಮಾಡಲಾಗಿದೆ.");
@@ -636,7 +698,7 @@
         <div class="card-box">
           <b>${db.name}</b> - ID: ${db.id} (ಫೋನ್: ${db.phone})<br>
           <div style="margin-top:6px; text-align:right;">
-            <button class="btn btn-danger" onclick="deleteRecord('delivery_boys', '${db.docId}', 'ಡೆಲಿವರಿ ಬಾಯ್')">🗑️ ಡಿಲೀಟ್ ಮಾಡಿ</button>
+            <button class="btn btn-danger" onclick="deleteRecord('delivery_boys', '${db.docId}', 'ಡೆಲಿವರಿ ಬಾಯ್')">🗑️ ಸಂಪೂರ್ಣ ಡಿಲೀಟ್ ಮಾಡಿ</button>
           </div>
         </div>
       `).join('');
@@ -654,7 +716,7 @@
           ಊರು: ${c.village || 'ಸ್ಥಳವಿಲ್ಲ'}<br>
           <b>ಖರೀದಿ:</b> ${c.ordersCount || 0} | <b>ರಿಟರ್ನ್:</b> ${c.returnsCount || 0}
           <div style="margin-top:6px; text-align:right;">
-            <button class="btn btn-danger" onclick="deleteRecord('customers_meta', '${c.docId}', 'ಗ್ರಾಹಕ')">🗑️ ಡಿಲೀಟ್ ಮಾಡಿ</button>
+            <button class="btn btn-danger" onclick="deleteRecord('customers_meta', '${c.docId}', 'ಗ್ರಾಹಕ')">🗑️ ಸಂಪೂರ್ಣ ಐಡಿ ಡಿಲೀಟ್ ಮಾಡಿ</button>
           </div>
         </div>
       `).join('');
@@ -670,7 +732,8 @@
       container.innerHTML = returnOrders.map(o => `
         <div class="card-box" style="border-left: 4px solid #d32f2f;">
           <b>${o.productName}</b> (₹${o.totalPrice})<br>
-          ಗ್ರಾಹಕರು: ${o.customer ? o.customer.name : 'N/A'} (${o.customer ? o.customer.phone : ''})
+          ಗ್ರಾಹಕರು: ${o.customer ? o.customer.name : 'N/A'} (${o.customer ? o.customer.phone : ''})<br>
+          <span style="color:#d32f2f; font-weight:bold;">🔄 ರಿಟರ್ನ್ ಪ್ರಕ್ರಿಯೆ ಮತ್ತು DTDC ಆಟೋ ಮೆಸೇಜ್ ಸಕ್ರಿಯವಾಗಿದೆ.</span>
         </div>
       `).join('');
     }
