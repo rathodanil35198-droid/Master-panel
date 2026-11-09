@@ -1,20 +1,24 @@
 <!DOCTYPE html>
-<html lang="kn">
+<html lang="kn" id="masterHtmlRoot">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <title id="masterPageTitle">ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್ - Master Panel App</title>
+  <meta name="description" content="ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಲಾನ್ ಯಾಪ್, ಅಂಗಡಿಗಳು ಹಾಗೂ ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ನಿರ್ವಹಿಸುವ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್.">
+  <meta name="keywords" content="ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್, Namma Ooru Shopping Master Panel, Dual Delivery System Shahapur">
   <meta name="google-site-verification" content="ZgEiG1KeQR2v__zpU2O3CpOBqjORyCDkBn5yInF902c" />
-  
-  <title>ಮಾಸ್ಟರ್ ಅಡ್ಮಿನ್ ಪ್ಯಾನಲ್ | Master Admin Panel - Namma Ooru Shopping App</title>
-  
+
   <link rel="icon" type="image/png" sizes="192x192" href="logo.png">
-  <link rel="apple-touch-icon" href="logo.png">
-  <meta name="theme-color" content="#1649a0">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#e65100">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, getDoc, setDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, deleteDoc, doc, updateDoc, addDoc, getDocs, setDoc, getDoc, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAm3HFKu101wex1b025-zJZ2BJ_o1Xvw",
@@ -30,226 +34,627 @@
 
     window.db = db;
     window.collection = collection;
-    window.addDoc = addDoc;
-    window.setDoc = setDoc;
     window.onSnapshot = onSnapshot;
-    window.updateDoc = updateDoc;
     window.deleteDoc = deleteDoc;
     window.doc = doc;
+    window.updateDoc = updateDoc;
+    window.setDoc = setDoc;
     window.getDoc = getDoc;
+    window.addDoc = addDoc;
+    window.getDocs = getDocs;
     window.query = query;
     window.where = where;
-
-    window.initMasterPanel();
+    window.serverTimestamp = serverTimestamp;
   </script>
 
   <style>
-    :root { --primary: #1649a0; --secondary: #ffe500; --bg: #f1f3f6; --text: #212121; --success: #388e3c; --danger: #d32f2f; }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-    html, body { width: 100%; min-height: 100vh; background-color: var(--bg); color: var(--text); }
-    body { padding-bottom: 80px; }
+    :root { --primary: #e65100; --secondary: #1976d2; --bg: #f4f6f8; --dark: #212121; --success: #388e3c; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--dark); padding: 10px; padding-bottom: 40px; }
 
-    header { background-color: var(--primary); color: white; padding: 12px 15px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-    .brand-title { font-size: 1rem; font-weight: bold; }
+    #splashScreen {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: linear-gradient(-45deg, #e65100, #ff6d00, #1976d2, #388e3c);
+      background-size: 400% 400%; animation: gradientBG 4s ease infinite;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 99999; transition: opacity 0.6s ease, visibility 0.6s;
+    }
+    @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-    .container { padding: 12px; max-width: 600px; margin: 0 auto; }
-    .card { background: #fff; border-radius: 8px; padding: 15px; margin-bottom: 12px; border: 1px solid #ddd; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .splash-logo-box {
+      width: 160px; height: 160px; border-radius: 50%; padding: 8px;
+      background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 25px rgba(255,255,255,0.9);
+      animation: pulseGlow 1s infinite alternate, zoomIn 0.8s ease-out;
+      display: flex; justify-content: center; align-items: center;
+    }
+    .splash-logo-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 3px solid #fff; background: #fff; }
+    @keyframes pulseGlow { 0% { transform: scale(0.95); box-shadow: 0 0 15px rgba(255,255,255,0.6); } 100% { transform: scale(1.08); box-shadow: 0 0 40px rgba(255,255,255,1), 0 0 60px rgba(255,215,0,0.8); } }
+    @keyframes zoomIn { 0% { opacity: 0; transform: scale(0.4); } 100% { opacity: 1; transform: scale(1); } }
+    .splash-text { color: #ffffff; margin-top: 20px; font-size: 1.3rem; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.4); text-align: center; }
+
+    .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    header { background: var(--primary); color: white; padding: 12px; text-align: center; border-radius: 8px; margin-bottom: 12px; position: relative; display: flex; align-items: center; justify-content: space-between; }
     
-    h3 { font-size: 1rem; color: var(--primary); margin-bottom: 10px; }
-    input, select, textarea { width: 100%; padding: 10px; margin-top: 6px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; }
-    button { padding: 10px 15px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 0.95rem; }
+    .install-btn { background: #2e7d32; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; animation: pulseInstall 1.5s infinite; z-index: 10; }
+    @keyframes pulseInstall {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.7); }
+      70% { transform: scale(1.03); box-shadow: 0 0 0 6px rgba(46, 125, 50, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 125, 50, 0); }
+    }
+
+    .instapp-bar { background: #333; color: white; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.85rem; font-weight: bold; }
+    .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--success); }
+    input:checked + .slider:before { transform: translateX(26px); }
+
+    #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .auth-box { background: white; padding: 25px; border-radius: 10px; width: 100%; max-width: 350px; text-align: center; }
+    .auth-box input { width: 100%; padding: 12px; margin: 12px 0; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; text-align: center; }
+
+    .master-nav { display: flex; gap: 4px; margin-bottom: 15px; flex-wrap: wrap; }
+    .m-btn { flex: 1; min-width: 15%; padding: 8px 2px; border: none; background: #e0e0e0; border-radius: 6px; font-weight: bold; font-size: 0.65rem; cursor: pointer; text-align: center; }
+    .m-btn.active { background: var(--secondary); color: white; }
+
+    .search-input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 12px; font-size: 0.85rem; }
+    .card-box { background: #fafafa; border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.82rem; }
+    .btn { padding: 6px 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; font-size: 0.75rem; text-decoration: none; display: inline-block; text-align: center; }
+    .btn-danger { background: #e53935; }
+    .btn-success { background: var(--success); }
+    .btn-primary { background: var(--secondary); }
+
+    .banner-preview-img { width: 100%; height: auto; max-height: 250px; object-fit: contain; background: #fff; border-radius: 6px; margin-bottom: 6px; border: 1px solid #ccc; display: block; }
     
-    .shop-item, .order-item { background: #f9f9f9; border: 1px solid #eee; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 10000; padding: 15px; }
+    .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 400px; width: 100%; text-align: center; max-height: 90vh; overflow-y: auto; }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="brand-title">👑 ಮಾಸ್ಟರ್ ಅಡ್ಮಿನ್ ಪ್ಯಾನಲ್</div>
-    <button onclick="toggleSystemStatus()" id="systemStatusBtn" style="width: auto; padding: 6px 12px; font-size: 0.8rem; background: #388e3c;">ಸಿಸ್ಟಮ್ ಆನ್ (ON)</button>
-  </header>
+  <!-- Splash Screen -->
+  <div id="splashScreen">
+    <div class="splash-logo-box">
+      <img src="logo.png" alt="Logo" onerror="this.src='https://via.placeholder.com/160/1e88e5/ffffff?text=MASTER'">
+    </div>
+    <div class="splash-text">👑 ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್</div>
+  </div>
+
+  <!-- Secure Password Overlay -->
+  <div id="authOverlay">
+    <div class="auth-box">
+      <h3>🔐 ಮಾಸ್ಟರ್ ಲಾಗಿನ್ ಕೋಡ್</h3>
+      <p style="font-size: 0.8rem; color: #666; margin-top: 5px;">ಮುಂದುವರಿಯಲು ರಹಸ್ಯ ಕೋಡ್ ನಮೂದಿಸಿ</p>
+      <input type="password" id="masterCodeInput" placeholder="ಪಾಸ್‌ವರ್ಡ್ ಹಾಕಿ">
+      <button class="btn btn-success" style="width:100%; padding:10px; font-size:0.9rem;" onclick="verifyMasterCode()">ಲಾಗಿನ್ ಮಾಡಿ</button>
+    </div>
+  </div>
+
+  <!-- Image & QR Viewer Modal -->
+  <div id="imageModal" class="modal">
+    <div class="modal-content">
+      <h3 id="modalTitle">ಫೋಟೋ / ಕ್ಯೂಆರ್ ವೀಕ್ಷಣೆ</h3>
+      <div id="modalBodyContent">
+        <img id="modalImgSrc" src="" style="width:100%; max-height:350px; object-fit:contain; background:#fff; margin:10px 0; border-radius:6px;">
+      </div>
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <a id="downloadLink" href="" download="document.jpg" class="btn btn-success" style="flex:1; text-decoration:none; text-align:center; padding:8px;">ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ</a>
+        <button class="btn btn-danger" style="flex:1;" onclick="closeImageModal()">ಮುಚ್ಚಿ</button>
+      </div>
+    </div>
+  </div>
 
   <div class="container">
-    <!-- ಆಪ್ ಕಂಟ್ರೋಲ್ -->
-    <div class="card">
-      <h3>⚙️ ಆಪ್ ನಿಯಂತ್ರಣ (App Control)</h3>
-      <p style="font-size: 0.85rem; color: #555; margin-bottom: 8px;">ಸಿಸ್ಟಮ್ ಆಫ್ ಮಾಡಿದರೆ ಎಲ್ಲಾ ಗ್ರಾಹಕರಿಗೆ ಸರ್ವರ್ ತಾತ್ಕಾಲಿಕವಾಗಿ ಬಂದ್ ಎಂದು ಕಾಣಿಸುತ್ತದೆ.</p>
-      <button onclick="toggleAppOnlineStatus()" id="masterControlBtn" style="background: var(--danger);">ಸಿಸ್ಟಮ್ ಆಫ್ ಮಾಡಿ (Turn Off)</button>
+    <header>
+      <h2 style="font-size: 1.1rem;">👑 ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್</h2>
+      <button id="topInstallBtn" onclick="triggerInstallApp()" class="install-btn" style="display:none;">📲 ಇನ್‌ಸ್ಟಾಲ್</button>
+    </header>
+
+    <div class="instapp-bar">
+      <span>⚡ ಇನ್‌ಸ್ಟಾಪ್ (Instapp) ಮಾಸ್ಟರ್ ಕಂಟ್ರೋಲ್:</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="instappMainToggle" onchange="toggleInstappSystem(this)">
+        <span class="slider"></span>
+      </label>
     </div>
 
-    <!-- ಅಂಗಡಿ ಮಾಲೀಕರ ಮ್ಯಾನೇಜ್‌ಮೆಂಟ್ & ಮೆಂಬರ್‌ಶಿಪ್ ಕಂಟ್ರೋಲ್ -->
-    <div class="card">
-      <h3>🏪 ಅಂಗಡಿ ಮಾಲೀಕರ ಪಟ್ಟಿ, ಮೆಂಬರ್‌ಶಿಪ್ & ಕಮಿಷನ್</h3>
-      <div id="shopOwnersListContainer">ಲೋಡ್ ಆಗುತ್ತಿದೆ...</div>
+    <!-- 7 Tabs -->
+    <div class="master-nav">
+      <button class="m-btn active" onclick="switchTab('ordersTab', this)">📦 ಲೈವ್ ಆರ್ಡರ್ಸ್</button>
+      <button class="m-btn" onclick="switchTab('shopsTab', this)">ಅಂಗಡಿ ಮಾಲೀಕರು</button>
+      <button class="m-btn" onclick="switchTab('bannersTab', this)">📢 ಜಾಹೀರಾತು</button>
+      <button class="m-btn" onclick="switchTab('withdrawTab', this)">💳 ವಿತ್‌ಡ್ರಾ</button>
+      <button class="m-btn" onclick="switchTab('deliveryTab', this)">ಡೆಲಿವರಿ ಬಾಯ್ಸ್</button>
+      <button class="m-btn" onclick="switchTab('customersTab', this)">ಗ್ರಾಹಕರು</button>
+      <button class="m-btn" onclick="switchTab('returnsTab', this)">ರಿಟರ್ನ್ಸ್</button>
     </div>
 
-    <!-- ಮಾಸ್ಟರ್ ಬ್ಯಾನರ್ ಅಪ್‌ಲೋಡ್ -->
-    <div class="card">
-      <h3>🖼️ ಮುಖಪುಟ ಬ್ಯಾನರ್ ಜಾಹೀರಾತುಗಳು</h3>
-      <input type="text" id="bannerImageUrlInput" placeholder="ಬ್ಯಾನರ್ ಇಮೇಜ್ ಲಿಂಕ್ (URL ಹಾಕಿ)">
-      <button onclick="addNewBanner()" style="background: var(--success);">ಬ್ಯಾನರ್ ಸೇರಿಸಿ (Add Banner)</button>
-      <div id="bannersListContainer" style="margin-top: 10px;"></div>
+    <input type="text" id="masterSearch" class="search-input" placeholder="🔍 ಹೆಸರು, ಐಡಿ ಅಥವಾ ಆರ್ಡರ್ ನಂಬರ್ ಬಳಸಿ ಹುಡುಕಿ..." oninput="filterMasterData()">
+
+    <!-- TAB 0: LIVE DUAL ORDERS (LOCAL + DTDC) -->
+    <div id="ordersTab">
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🚚 ಗ್ರಾಹಕರು ಆರ್ಡರ್ ಮಾಡಿದ ಹಾಗೂ ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್-ಅಪ್ ಆದ ಲೈವ್ ಆರ್ಡರ್‌ಗಳು</h3>
+      <div id="ordersListContainer"></div>
     </div>
 
-    <!-- ಎಲ್ಲಾ ಆರ್ಡರ್‌ಗಳು -->
-    <div class="card">
-      <h3>📦 ಎಲ್ಲಾ ಗ್ರಾಹಕರ ಆರ್ಡರ್‌ಗಳು</h3>
-      <div id="allOrdersContainer">ಲೋಡ್ ಆಗುತ್ತಿದೆ...</div>
+    <!-- TAB 1: SHOP OWNERS & COMMISSION EDITING -->
+    <div id="shopsTab" style="display:none;">
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🏪 ಲಾಗಿನ್ ಆಗಿರುವ ಅಂಗಡಿ ಮಾಲೀಕರು & ಕಮಿಷನ್ ಎಡಿಟ್ ಸೆಟ್ಟಿಂಗ್ಸ್</h3>
+      <div id="shopsListContainer"></div>
+    </div>
+
+    <!-- TAB 2: ADVERTISEMENT BANNERS -->
+    <div id="bannersTab" style="display:none;">
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">📢 ಮೇಲ್ಭಾಗದ ಜಾಹೀರಾತು ಬ್ಯಾನರ್‌ಗಳು</h3>
+      <div class="card-box" style="background:#e8f4fd;">
+        <b>ಹೊಸ ಜಾಹೀರಾತು ಫೋಟೋ ಸೇರಿಸಿ:</b>
+        <input type="text" id="bannerUrlInput" placeholder="ಇಮೇಜ್ URL ಹಾಕಿ (http://...)" style="width:100%; padding:8px; margin:6px 0; border:1px solid #ccc; border-radius:4px;">
+        <div style="text-align:center; margin:4px 0;">ಅಥವಾ</div>
+        <input type="file" id="bannerFileInput" accept="image/*" style="width:100%; margin-bottom:8px;">
+        <button class="btn btn-success" style="width:100%; padding:8px;" onclick="uploadBannerImage()">➕ ಆಪ್‌ಗೆ ಜಾಹೀರಾತು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</button>
+      </div>
+      <div id="bannersListContainer"></div>
+    </div>
+
+    <!-- TAB 3: WITHDRAW REQUESTS -->
+    <div id="withdrawTab" style="display:none;">
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">💳 ಪಾಕೆಟ್ ಮನಿ ವಿತ್‌ಡ್ರಾ ರಿಕ್ವೆಸ್ಟ್‌ಗಳು</h3>
+      <div id="withdrawListContainer"></div>
+    </div>
+
+    <!-- TAB 4: DELIVERY BOYS -->
+    <div id="deliveryTab" style="display:none;">
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🛵 ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ಪಟ್ಟಿ & ಪೇಮೆಂಟ್</h3>
+      <div id="deliveryListContainer"></div>
+    </div>
+
+    <!-- TAB 5: CUSTOMERS -->
+    <div id="customersTab" style="display:none;">
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🛍️ ಗ್ರಾಹಕರ ಪಟ್ಟಿ & ರಿಟರ್ನ್ ಕಂಟ್ರೋಲ್</h3>
+      <div id="customersListContainer"></div>
+    </div>
+
+    <!-- TAB 6: RETURNS & URGENT ORDERS -->
+    <div id="returnsTab" style="display:none;">
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🔄 ರಿಟರ್ನ್ ಆರ್ಡರ್ ಪೇಮೆಂಟ್</h3>
+      <div id="returnsListContainer"></div>
     </div>
   </div>
 
   <script>
-    window.initMasterPanel = function() {
-      startMasterShopOwnersListener();
-      startMasterOrdersListener();
-      startMasterBannersListener();
-      checkMasterSystemStatus();
-    };
+    let allShops = [];
+    let allDeliveryBoys = [];
+    let allCustomers = [];
+    let allOrders = [];
+    let allBanners = [];
+    let allWithdrawals = [];
+    let deferredPrompt = null;
 
-    function checkMasterSystemStatus() {
-      window.onSnapshot(window.doc(window.db, "settings", "instapp_control"), (docSnap) => {
-        if (docSnap.exists()) {
-          const isOnline = docSnap.data().isOnline !== false;
-          const btn = document.getElementById('systemStatusBtn');
-          const controlBtn = document.getElementById('masterControlBtn');
-          if (isOnline) {
-            btn.innerText = "ಸಿಸ್ಟಮ್ ಆನ್ (ON)";
-            btn.style.background = "#388e3c";
-            controlBtn.innerText = "ಸಿಸ್ಟಮ್ ಆಫ್ ಮಾಡಿ (Turn Off)";
-            controlBtn.style.background = "var(--danger)";
-          } else {
-            btn.innerText = "ಸಿಸ್ಟಮ್ ಆಫ್ (OFF)";
-            btn.style.background = "var(--danger)";
-            controlBtn.innerText = "ಸಿಸ್ಟಮ್ ಆನ್ ಮಾಡಿ (Turn On)";
-            controlBtn.style.background = "#388e3c";
-          }
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      checkInstallStatus();
+    });
+
+    function checkInstallStatus() {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      const installBtn = document.getElementById('topInstallBtn');
+      if (installBtn) {
+        if (isStandalone) {
+          installBtn.style.display = 'none';
+        } else {
+          installBtn.style.display = 'inline-flex';
         }
-      });
-    }
-
-    async function toggleAppOnlineStatus() {
-      const docRef = window.doc(window.db, "settings", "instapp_control");
-      const docSnap = await window.getDoc(docRef);
-      let currentStatus = true;
-      if (docSnap.exists()) currentStatus = docSnap.data().isOnline !== false;
-
-      let newStatus = !currentStatus;
-      await window.setDoc(docRef, { isOnline: newStatus }, { merge: true });
-      alert(newStatus ? "✅ ಸಿಸ್ಟಮ್ ಆನ್ ಮಾಡಲಾಗಿದೆ." : "⚠️ ಸಿಸ್ಟಮ್ ಆಫ್ ಮಾಡಲಾಗಿದೆ.");
-    }
-
-    function startMasterShopOwnersListener() {
-      window.onSnapshot(window.collection(window.db, "shop_owners"), (snapshot) => {
-        let container = document.getElementById('shopOwnersListContainer');
-        let html = "";
-        snapshot.forEach(docSnap => {
-          let s = { id: docSnap.id, ...docSnap.data() };
-          if (s.isDeleted) return;
-          let qrCodeImg = s.upiQrCode || 'https://via.placeholder.com/80?text=QR+Code';
-          let commissionVal = s.commission || 5;
-
-          html += `
-            <div class="shop-item">
-              <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">
-                <img src="${qrCodeImg}" style="width:60px; height:60px; object-fit:cover; border:1px solid #ccc; border-radius:4px;" alt="QR">
-                <div style="flex:1;">
-                  <strong>ಅಂಗಡಿ: ${s.shopName}</strong> (ID: ${s.id})<br>
-                  <small>ವಿಭಾಗ: ${s.category || 'ಎಲೆಕ್ಟ್ರಾನಿಕ್ಸ್/ಬಟ್ಟೆ'} | ಫೋನ್: ${s.phone || ''}</small><br>
-                  <small>ಮಾಲೀಕರು: ${s.ownerName || ''} | ತಾಲೂಕು: ${s.taluk || ''}</small>
-                </div>
-              </div>
-
-              <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-                <label style="font-size:0.8rem; font-weight:bold;">ಕಮಿಷನ್ (%):</label>
-                <input type="number" id="comm_${s.id}" value="${commissionVal}" style="width:70px; padding:4px; margin:0;">
-                <button onclick="saveShopCommission('${s.id}')" style="width:auto; padding:5px 10px; font-size:0.8rem; background:var(--success);">ಸೇವ್</button>
-              </div>
-
-              <div style="display:flex; justify-content:space-between; align-items:center; background:${s.isPaid ? '#e8f5e9' : '#fff3e0'}; padding:8px; border-radius:6px; border:1px solid ${s.isPaid ? '#c8e6c9' : '#ffe0b2'};">
-                <span style="font-size:0.82rem; font-weight:bold; color:${s.isPaid ? '#2e7d32' : '#e65100'};">
-                  ${s.isPaid ? '✔ ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಆಗಿದೆ' : '⏳ ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ ಬಾಕಿ ಇದೆ'}
-                </span>
-                <button onclick="toggleShopPaid('${s.id}', ${!s.isPaid})" style="width:auto; padding:5px 10px; font-size:0.78rem; background:${s.isPaid ? '#d32f2f' : '#388e3c'};">
-                  ${s.isPaid ? 'ಪೇಮೆಂಟ್ ರದ್ದುಮಾಡಿ' : 'ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಮಾಡಿ'}
-                </button>
-              </div>
-
-              <button onclick="deleteShopOwner('${s.id}')" style="margin-top:8px; padding:6px; font-size:0.78rem; background:var(--danger);">ಅಂಗಡಿ ಸಂಪೂರ್ಣ ಡಿಲೀಟ್ ಮಾಡಿ</button>
-            </div>
-          `;
-        });
-        container.innerHTML = html || "<p>ಯಾವುದೇ ಅಂಗಡಿಗಳಿಲ್ಲ.</p>";
-      });
-    }
-
-    async function saveShopCommission(shopId) {
-      let val = document.getElementById(`comm_${shopId}`).value;
-      await window.updateDoc(window.doc(window.db, "shop_owners", shopId), { commission: Number(val) });
-      alert("✅ ಕಮಿಷನ್ ಪರ್ಸಂಟೇಜ್ ಸೇವ್ ಮಾಡಲಾಗಿದೆ.");
-    }
-
-    async function toggleShopPaid(shopId, status) {
-      await window.updateDoc(window.doc(window.db, "shop_owners", shopId), { isPaid: status });
-    }
-
-    async function deleteShopOwner(shopId) {
-      if (confirm("ಖಂಡಿತವಾಗಿ ಈ ಅಂಗಡಿಯನ್ನು ಡಿಲೀಟ್ ಮಾಡಲು ಬಯಸುವಿರಾ?")) {
-        await window.updateDoc(window.doc(window.db, "shop_owners", shopId), { isDeleted: true, isPaid: false });
-        alert("ಅಂಗಡಿಯನ್ನು ಡಿಲೀಟ್ ಮಾಡಲಾಗಿದೆ.");
       }
     }
 
-    function startMasterBannersListener() {
-      window.onSnapshot(window.collection(window.db, "master_banners"), (snapshot) => {
-        let container = document.getElementById('bannersListContainer');
-        let html = "";
-        snapshot.forEach(docSnap => {
-          let b = { id: docSnap.id, ...docSnap.data() };
-          html += `
-            <div style="display:flex; align-items:center; gap:8px; margin-top:6px; background:#fff; padding:6px; border:1px solid #eee; border-radius:4px;">
-              <img src="${b.imageUrl}" style="width:60px; height:35px; object-fit:contain; background:#000;">
-              <span style="flex:1; font-size:0.75rem; overflow:hidden; text-overflow:ellipsis;">${b.imageUrl}</span>
-              <button onclick="deleteBanner('${b.id}')" style="width:auto; padding:4px 8px; font-size:0.75rem; background:var(--danger);">ಅಳಿಲಿ</button>
+    window.addEventListener('appinstalled', () => { checkInstallStatus(); });
+
+    async function triggerInstallApp() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        checkInstallStatus();
+      } else {
+        alert("ಆಪ್ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಲು ನಿಮ್ಮ ಬ್ರೌಸರ್ ಮೇಲಿರುವ ಮೂರು ಚುಕ್ಕೆಗಳ (⋮) ಮೆನು ಕ್ಲಿಕ್ ಮಾಡಿ 'Install app' ಅಥವಾ 'Add to Home screen' ಆಯ್ಕೆಮಾಡಿ.");
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const splash = document.getElementById('splashScreen');
+        splash.style.opacity = '0';
+        setTimeout(() => { splash.style.display = 'none'; }, 600);
+      }, 2000);
+
+      checkInstallStatus();
+      window.history.pushState({ page: 'master' }, '', '');
+      window.addEventListener('popstate', () => { window.history.pushState({ page: 'master' }, '', ''); });
+      loadInstappStatus();
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log("SW fail", err));
+      }
+    });
+
+    function verifyMasterCode() {
+      const code = document.getElementById('masterCodeInput').value.trim();
+      if (code === "9353444070") {
+        document.getElementById('authOverlay').style.display = 'none';
+        loadMasterData();
+      } else {
+        alert("ತಪ್ಪು ಕೋಡ್! ದಯವಿಟ್ಟು ಸರಿಯಾದ ಕೋಡ್ ನಮೂದಿಸಿ.");
+      }
+    }
+
+    function switchTab(tabId, btn) {
+      document.getElementById('ordersTab').style.display = tabId === 'ordersTab' ? 'block' : 'none';
+      document.getElementById('shopsTab').style.display = tabId === 'shopsTab' ? 'block' : 'none';
+      document.getElementById('bannersTab').style.display = tabId === 'bannersTab' ? 'block' : 'none';
+      document.getElementById('withdrawTab').style.display = tabId === 'withdrawTab' ? 'block' : 'none';
+      document.getElementById('deliveryTab').style.display = tabId === 'deliveryTab' ? 'block' : 'none';
+      document.getElementById('customersTab').style.display = tabId === 'customersTab' ? 'block' : 'none';
+      document.getElementById('returnsTab').style.display = tabId === 'returnsTab' ? 'block' : 'none';
+
+      document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    async function loadInstappStatus() {
+      try {
+        const docRef = window.doc(window.db, "settings", "instapp_control");
+        const docSnap = await window.getDoc(docRef);
+        if (docSnap.exists()) {
+          document.getElementById('instappMainToggle').checked = docSnap.data().isOnline !== false;
+        } else {
+          await window.setDoc(docRef, { isOnline: true });
+          document.getElementById('instappMainToggle').checked = true;
+        }
+      } catch(e) { console.log(e); }
+    }
+
+    async function toggleInstappSystem(checkbox) {
+      const status = checkbox.checked;
+      try {
+        await window.setDoc(window.doc(window.db, "settings", "instapp_control"), {
+          isOnline: status,
+          updatedAt: window.serverTimestamp()
+        });
+        alert(status ? "🟢 ಇನ್‌ಸ್ಟಾಪ್ ಆಪ್ ಆನ್ (Online) ಮಾಡಲಾಗಿದೆ!" : "🔴 ಇನ್‌ಸ್ಟಾಪ್ ಆಪ್ ಆಫ್ (Server Down) ಮಾಡಲಾಗಿದೆ.");
+      } catch(e) { alert("Error: " + e.message); }
+    }
+
+    function loadMasterData() {
+      window.onSnapshot(window.collection(window.db, "master_banners"), (snap) => {
+        allBanners = [];
+        snap.forEach(d => allBanners.push({ docId: d.id, ...d.data() }));
+        renderBanners(allBanners);
+      });
+
+      window.onSnapshot(window.collection(window.db, "withdraw_requests"), (snap) => {
+        allWithdrawals = [];
+        snap.forEach(d => allWithdrawals.push({ docId: d.id, ...d.data() }));
+        renderWithdrawals(allWithdrawals);
+      });
+
+      window.onSnapshot(window.collection(window.db, "orders"), (snap) => {
+        allOrders = [];
+        snap.forEach(d => allOrders.push({ id: d.id, ...d.data() }));
+        allOrders.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        processDataViews();
+      });
+
+      window.onSnapshot(window.collection(window.db, "shop_owners"), (snap) => {
+        allShops = [];
+        snap.forEach(d => allShops.push({ docId: d.id, ...d.data() }));
+        renderShops(allShops);
+      });
+
+      window.onSnapshot(window.collection(window.db, "delivery_boys"), (snap) => {
+        allDeliveryBoys = [];
+        snap.forEach(d => allDeliveryBoys.push({ docId: d.id, ...d.data() }));
+        renderDeliveryBoys(allDeliveryBoys);
+      });
+
+      processCustomers();
+    }
+
+    function processDataViews() {
+      renderOrders(allOrders);
+      renderShops(allShops);
+      renderDeliveryBoys(allDeliveryBoys);
+      renderReturnsTab(allOrders);
+      processCustomers();
+    }
+
+    function renderOrders(list) {
+      const container = document.getElementById('ordersListContainer');
+      if (list.length === 0) {
+        container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಆರ್ಡರ್‌ಗಳಿಲ್ಲ.</p>';
+        return;
+      }
+
+      container.innerHTML = list.map(o => {
+        let status = o.status || 'CONFIRMED';
+        let isPickedUpByDboy = o.isPickedUp === true || status === 'PICKED_UP_BY_DBOY';
+        let deliveryMode = o.deliveryMode || ''; 
+        let trackingId = o.trackingId || '';
+
+        let updateNeededHtml = '';
+        if (isPickedUpByDboy && !deliveryMode) {
+          updateNeededHtml = `
+            <div style="background:#e8f5e9; border:2px solid #388e3c; padding:10px; border-radius:6px; margin:8px 0;">
+              <span style="color:#2e7d32; font-weight:bold; font-size:0.85rem;">🔔 ಡೆಲಿವರಿ ಮೋಡ್ ಆಯ್ಕೆಮಾಡಿ:</span>
+              <select id="modeSelect_${o.id}" style="width:100%; padding:8px; margin-top:6px; border:1px solid #388e3c; border-radius:4px; font-weight:bold;">
+                <option value="LOCAL">🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ ಬಾಯ್ ಮೂಲಕ (OTP)</option>
+                <option value="COURIER">✈️ DTDC ಕೊರಿಯರ್ ಮೂಲಕ (ಟ್ರ್ಯಾಕಿಂಗ್)</option>
+              </select>
+              <button class="btn btn-success" style="width:100%; margin-top:6px; padding:8px;" onclick="confirmDeliveryMode('${o.id}')">
+                ✔ ಮೋಡ್ ಖಚಿತಪಡಿಸಿ ಕಳುಹಿಸಿ
+              </button>
             </div>
           `;
+        }
+
+        let modeDetailsHtml = '';
+        if (deliveryMode === 'LOCAL') {
+          modeDetailsHtml = `
+            <div style="background:#e3f2fd; padding:8px; border-radius:6px; margin:6px 0; text-align:center;">
+              <span style="font-size:0.8rem; color:#1565c0; font-weight:bold;">🔑 ಲೋಕಲ್ ಡೆಲಿವರಿ ಒಟಿಪಿ:</span>
+              <div style="font-size:1.3rem; font-weight:bold; color:#0d47a1; margin-top:2px;">${o.deliveryOtp || '8740'}</div>
+            </div>
+          `;
+        } else if (deliveryMode === 'COURIER') {
+          modeDetailsHtml = `
+            <div style="background:#fff3e0; padding:8px; border-radius:6px; margin:6px 0;">
+              <span style="font-size:0.8rem; color:#e65100; font-weight:bold;">📦 DTDC ಕೊರಿಯರ್ ಟ್ರ್ಯಾಕಿಂಗ್:</span>
+              <div style="display:flex; gap:6px; margin-top:4px;">
+                <input type="text" id="trackInput_${o.id}" value="${trackingId}" placeholder="DTDC AWB ನಂಬರ್" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+                <button class="btn btn-primary" onclick="saveCourierTracking('${o.id}')">ಸೇವ್</button>
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="card-box" style="border-left:4px solid ${isPickedUpByDboy ? 'var(--success)' : 'var(--primary)'};">
+            <b>ಆರ್ಡರ್ ID: ${o.orderId || o.id}</b><br>
+            <b>ವಸ್ತು:</b> ${o.productName} - ₹${o.totalPrice}<br>
+            <b>ಅಂಗಡಿ:</b> ${o.shopName || 'Store'} | <b>ಗ್ರಾಹಕರು:</b> ${o.customer?.name} (${o.customer?.phone})<br>
+            <b>ಸ್ಥಿತಿ:</b> ${o.status} ${isPickedUpByDboy ? ' | 🛵 ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್ ಮಾಡಿದ್ದಾರೆ' : ''}
+            ${updateNeededHtml}
+            ${modeDetailsHtml}
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function confirmDeliveryMode(orderDocId) {
+      const mode = document.getElementById(`modeSelect_${orderDocId}`).value;
+      try {
+        await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
+          deliveryMode: mode,
+          status: mode === 'LOCAL' ? 'OUT_FOR_DELIVERY' : 'HANDOVER_TO_DTDC',
+          updatedAt: window.serverTimestamp()
         });
-        container.innerHTML = html || "<p style='font-size:0.8rem; color:#666;'>ಯಾವುದೇ ಬ್ಯಾನರ್‌ಗಳಿಲ್ಲ.</p>";
+        alert("✅ ಡೆಲಿವರಿ ಮೋಡ್ ಯಶಸ್ವಿಯಾಗಿ ಸೆಟ್ ಮಾಡಲಾಗಿದೆ!");
+      } catch(e) { alert("Error: " + e.message); }
+    }
+
+    async function saveCourierTracking(orderDocId) {
+      const trackVal = document.getElementById(`trackInput_${orderDocId}`).value.trim();
+      if (!trackVal) { alert("ದಯವಿಟ್ಟು ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಹಾಕಿ."); return; }
+      try {
+        await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
+          trackingId: trackVal,
+          updatedAt: window.serverTimestamp()
+        });
+        alert("✅ DTDC ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಸೇವ್ ಆಗಿದೆ!");
+      } catch(e) { alert("Error: " + e.message); }
+    }
+
+    // --- ಅಂಗಡಿ ಮಾಲೀಕರ ಕಮಿಷನ್ ಎಡಿಟ್ ಮತ್ತು ಸೇವ್ ಫಂಕ್ಷನ್ ---
+    function renderShops(list) {
+      const container = document.getElementById('shopsListContainer');
+      if (list.length === 0) {
+        container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಅಂಗಡಿ ಮಾಲೀಕರಿಲ್ಲ.</p>';
+        return;
+      }
+      container.innerHTML = list.map(s => `
+        <div class="card-box">
+          <b>ಅಂಗಡಿ:</b> ${s.shopName} (${s.name}) - ID: ${s.id}<br>
+          <b>ವಿಭಾಗ:</b> ${s.shopType || 'ಇತರ'} | <b>ಫೋನ್:</b> ${s.phone}<br>
+          
+          <div style="margin-top:8px; background:#e3f2fd; padding:8px; border-radius:6px; display:flex; align-items:center; gap:8px;">
+            <label style="font-size:0.75rem; font-weight:bold; color:#1565c0;">ಕಮಿಷನ್ ಪರ್ಸೆಂಟೇಜ್ (%):</label>
+            <input type="number" id="commInput_${s.docId}" value="${s.commissionPercent !== undefined ? s.commissionPercent : 12}" style="width:70px; padding:4px; font-weight:bold; text-align:center;">
+            <button class="btn btn-success" style="padding:6px 10px;" onclick="saveShopCommission('${s.docId}')">💾 ಸೇವ್</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function saveShopCommission(docId) {
+      const val = document.getElementById(`commInput_${docId}`).value;
+      try {
+        await window.updateDoc(window.doc(window.db, "shop_owners", docId), {
+          commissionPercent: Number(val),
+          updatedAt: window.serverTimestamp()
+        });
+        alert("✅ ಅಂಗಡಿ ಮಾಲೀಕರ ಕಮಿಷನ್ ಪರ್ಸೆಂಟೇಜ್ ಯಶಸ್ವಿಯಾಗಿ ಸೇವ್ ಮಾಡಲಾಗಿದೆ!");
+      } catch(e) { alert("Error: " + e.message); }
+    }
+
+    async function uploadBannerImage() {
+      const urlInput = document.getElementById('bannerUrlInput').value.trim();
+      const fileInput = document.getElementById('bannerFileInput').files[0];
+      let finalUrl = urlInput;
+
+      if (!finalUrl && fileInput) {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+          finalUrl = e.target.result;
+          await saveBannerToFirestore(finalUrl);
+        };
+        reader.readAsDataURL(fileInput);
+        return;
+      }
+      if (finalUrl) { await saveBannerToFirestore(finalUrl); }
+      else { alert("ದಯವಿಟ್ಟು ಇಮೇಜ್ URL ಅಥವಾ ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ."); }
+    }
+
+    async function saveBannerToFirestore(url) {
+      try {
+        await window.addDoc(window.collection(window.db, "master_banners"), {
+          imageUrl: url,
+          createdAt: window.serverTimestamp()
+        });
+        document.getElementById('bannerUrlInput').value = '';
+        document.getElementById('bannerFileInput').value = '';
+        alert("🟢 ಜಾಹೀರಾತು ಅಪ್‌ಲೋಡ್ ಆಗಿದೆ!");
+      } catch(e) { alert("Error: " + e.message); }
+    }
+
+    function renderBanners(list) {
+      const container = document.getElementById('bannersListContainer');
+      if (list.length === 0) {
+        container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಜಾಹೀರಾತು ಬ್ಯಾನರ್‌ಗಳಿಲ್ಲ.</p>';
+        return;
+      }
+      container.innerHTML = list.map(b => `
+        <div class="card-box">
+          <img src="${b.imageUrl}" class="banner-preview-img" onclick="openImageModal('${b.imageUrl}', 'ಜಾಹೀರಾತು ಬ್ಯಾನರ್')" style="cursor:pointer;">
+          <div style="text-align:right; margin-top:6px;">
+            <button class="btn btn-danger" onclick="deleteRecord('master_banners', '${b.docId}', 'ಬ್ಯಾನರ್')">ಡಿಲೀಟ್ ಮಾಡಿ</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function deleteRecord(colName, docId, name) {
+      if (confirm(`ಈ ${name} ಅನ್ನು ಡಿಲೀಟ್ ಮಾಡಲು ಬಯಸುವಿರಾ?`)) {
+        try {
+          await window.deleteDoc(window.doc(window.db, colName, docId));
+          alert("ಯಶಸ್ವಿಯಾಗಿ ಡಿಲೀಟ್ ಮಾಡಲಾಗಿದೆ.");
+        } catch(e) { alert("Error: " + e.message); }
+      }
+    }
+
+    function renderWithdrawals(list) {
+      const container = document.getElementById('withdrawListContainer');
+      if (list.length === 0) {
+        container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ವಿತ್‌ಡ್ರಾ ವಿನಂತಿಗಳಿಲ್ಲ.</p>';
+        return;
+      }
+      container.innerHTML = list.map(w => {
+        let isApproved = w.status === 'APPROVED';
+        return `
+          <div class="card-box" style="border-left: 4px solid ${isApproved ? 'var(--success)' : '#ff9f00'};">
+            <b>ಮೊಬೈಲ್ ನಂಬರ್:</b> ${w.phone}<br>
+            <b>ಮೊತ್ತ: ₹${w.amount}</b> | <b>UPI ID:</b> ${w.upiId}<br>
+            <div style="margin-top:6px; display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:bold; color:${isApproved ? 'var(--success)' : '#e65100'};">
+                ${isApproved ? '✅ ಪಾವತಿಸಲಾಗಿದೆ' : '⏳ ಪೆಂಡಿಂಗ್ ಇದೆ'}
+              </span>
+              ${!isApproved ? `<button class="btn btn-success" onclick="approveWithdrawal('${w.docId}')">✔ ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಮಾಡಿ</button>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function approveWithdrawal(docId) {
+      try {
+        await window.updateDoc(window.doc(window.db, "withdraw_requests", docId), {
+          status: 'APPROVED',
+          approvedAt: window.serverTimestamp()
+        });
+        alert("✅ ವಿತ್‌ಡ್ರಾ ಪಾವತಿ ಆಪ್ರೂವ್ ಆಗಿದೆ!");
+      } catch(e) { alert("Error: " + e.message); }
+    }
+
+    function processCustomers() {
+      window.onSnapshot(window.collection(window.db, "customers_meta"), (snap) => {
+        let custMap = {};
+        snap.forEach(d => {
+          let cData = d.data();
+          custMap[cData.phone] = { docId: d.id, ...cData };
+        });
+
+        allOrders.forEach(o => {
+          if (o.customer && o.customer.phone) {
+            let phone = o.customer.phone;
+            if (!custMap[phone]) {
+              custMap[phone] = { docId: phone, name: o.customer.name, phone: phone, village: o.customer.village, ordersCount: 0, returnsCount: 0, codAllowed: true };
+            }
+            custMap[phone].ordersCount = (custMap[phone].ordersCount || 0) + 1;
+            if (o.status === 'RETURNED' || o.isReturned) {
+              custMap[phone].returnsCount = (custMap[phone].returnsCount || 0) + 1;
+            }
+          }
+        });
+
+        allCustomers = Object.values(custMap);
+        renderCustomers(allCustomers);
       });
     }
 
-    async function addNewBanner() {
-      let url = document.getElementById('bannerImageUrlInput').value.trim();
-      if (!url) { alert("ದಯವಿಟ್ಟು ಇಮೇಜ್ URL ಹಾಕಿ."); return; }
-      await window.addDoc(window.collection(window.db, "master_banners"), { imageUrl: url, timestamp: Date.now() });
-      document.getElementById('bannerImageUrlInput').value = '';
-      alert("ಬ್ಯಾನರ್ ಸೇರಿಸಲಾಗಿದೆ.");
+    function renderDeliveryBoys(list) {
+      const container = document.getElementById('deliveryListContainer');
+      if (list.length === 0) {
+        container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ಇಲ್ಲ.</p>';
+        return;
+      }
+      container.innerHTML = list.map(db => `<div class="card-box"><b>${db.name}</b> - ID: ${db.id}</div>`).join('');
     }
 
-    async function deleteBanner(id) {
-      await window.deleteDoc(window.doc(window.db, "master_banners", id));
+    function renderCustomers(list) {
+      const container = document.getElementById('customersListContainer');
+      if (list.length === 0) {
+        container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಗ್ರಾಹಕರಿಲ್ಲ.</p>';
+        return;
+      }
+      container.innerHTML = list.map(c => `
+        <div class="card-box">
+          <b>ಗ್ರಾಹಕರು:</b> ${c.name || 'ಅಜ್ಞಾತ'} (${c.phone})<br>
+          ಊರು: ${c.village || 'ಸ್ಥಳವಿಲ್ಲ'}<br>
+          <b>ಖರೀದಿ:</b> ${c.ordersCount || 0} | <b>ರಿಟರ್ನ್:</b> ${c.returnsCount || 0}
+        </div>
+      `).join('');
     }
 
-    function startMasterOrdersListener() {
-      window.onSnapshot(window.collection(window.db, "orders"), (snapshot) => {
-        let container = document.getElementById('allOrdersContainer');
-        let orders = [];
-        snapshot.forEach(d => orders.push({ id: d.id, ...d.data() }));
-        orders.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    function renderReturnsTab(orders) {
+      const container = document.getElementById('returnsListContainer');
+      let returnOrders = orders.filter(o => o.isReturned || o.status === 'RETURNED' || o.status === 'RETURN_REQUESTED');
+      if (returnOrders.length === 0) {
+        container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ರಿಟರ್ನ್ ಆರ್ಡರ್‌ಗಳಿಲ್ಲ.</p>';
+        return;
+      }
+      container.innerHTML = returnOrders.map(o => `
+        <div class="card-box" style="border-left: 4px solid #d32f2f;">
+          <b>${o.productName}</b> (₹${o.totalPrice})<br>
+          ಗ್ರಾಹಕರು: ${o.customer ? o.customer.name : 'N/A'} (${o.customer ? o.customer.phone : ''})
+        </div>
+      `).join('');
+    }
 
-        let html = "";
-        orders.forEach(o => {
-          let cust = o.customer || {};
-          html += `
-            <div class="order-item">
-              <strong>${o.orderId}</strong> - ${o.productName}<br>
-              <small>ಅಂಗಡಿ: ${o.shopName || ''} | ಗ್ರಾಹಕರು: ${cust.name || ''} (${cust.phone || ''})</small><br>
-              <small>ವಿಳಾಸ: ${cust.village || ''}, ${cust.taluk || ''}, ${cust.district || ''} - ${cust.pincode || ''}</small><br>
-              <small>ಸ್ಥಿತಿ: <b>${o.status}</b> | ಮೊತ್ತ: ₹${o.totalPrice}</small>
-            </div>
-          `;
-        });
-        container.innerHTML = html || "<p>ಯಾವುದೇ ಆರ್ಡರ್‌ಗಳಿಲ್ಲ.</p>";
-      });
+    function openImageModal(imgSrc, title) {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalBodyContent').innerHTML = `<img src="${imgSrc}" style="width:100%; max-height:350px; object-fit:contain; background:#fff; margin:10px 0; border-radius:6px;">`;
+      document.getElementById('downloadLink').href = imgSrc;
+      document.getElementById('imageModal').style.display = 'flex';
+    }
+
+    function closeImageModal() { document.getElementById('imageModal').style.display = 'none'; }
+
+    function filterMasterData() {
+      const q = document.getElementById('masterSearch').value.toLowerCase();
+      renderOrders(allOrders.filter(o => (o.orderId && o.orderId.toLowerCase().includes(q)) || (o.productName && o.productName.toLowerCase().includes(q)) || (o.customer && o.customer.phone.includes(q))));
+      renderShops(allShops.filter(s => s.name.toLowerCase().includes(q) || s.id.includes(q) || s.shopName.toLowerCase().includes(q)));
+      renderDeliveryBoys(allDeliveryBoys.filter(db => db.name.toLowerCase().includes(q) || db.id.includes(q)));
+      renderCustomers(allCustomers.filter(c => (c.name && c.name.toLowerCase().includes(q)) || c.phone.includes(q)));
     }
   </script>
 </body>
