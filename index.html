@@ -413,10 +413,17 @@
               <span style="font-size:0.8rem; color:#e65100; font-weight:bold;">📦 DTDC ಕೊರಿಯರ್ ಟ್ರ್ಯಾಕಿಂಗ್ & ಲೈವ್ ಲೊಕೇಶನ್:</span>
               <div style="display:flex; gap:6px; margin-top:4px;">
                 <input type="text" id="trackInput_${o.id}" value="${trackingId}" placeholder="DTDC AWB ನಂಬರ್" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
-                <button class="btn btn-primary" onclick="saveCourierTracking('${o.id}')">ಸೇವ್</button>
+                <button class="btn btn-primary" onclick="saveCourierTracking('${o.id}')">ಸೇವ್ ಮಾಡಿ</button>
               </div>
-              ${trackingId ? `<div style="margin-top:6px; font-size:0.75rem; color:#388e3c; font-weight:bold;">📍 ಲೈವ್ ಟ್ರ್ಯಾಕಿಂಗ್ ಆಕ್ಟಿವ್ ಇದೆ (AWB: ${trackingId})</div>` : ''}
               
+              ${trackingId ? `
+                <div style="margin-top:8px;">
+                  <a href="https://www.dtdc.com/tracking?trNo=${trackingId}" target="_blank" class="btn btn-warning" style="width:100%; text-decoration:none; display:block; text-align:center; padding:8px; font-weight:bold;">
+                    🌐 Track Courier Live (DTDC) - ಲಿಂಕ್ ಓಪನ್ ಮಾಡಿ
+                  </a>
+                </div>
+              ` : ''}
+
               <div style="margin-top:8px; display:flex; gap:6px;">
                 <button class="btn btn-success" style="flex:1;" onclick="confirmCourierDelivery('${o.id}')">✔ ಡೆಲಿವರಿ ಕನ್ಫರ್ಮ್ ಮಾಡಿ</button>
                 <button class="btn btn-danger" style="flex:1;" onclick="markCourierReturn('${o.id}')">🔄 DTDC ರಿಟರ್ನ್ ಘೋಷಿಸಿ</button>
@@ -461,7 +468,7 @@
           trackingId: trackVal,
           updatedAt: window.serverTimestamp()
         });
-        alert("✅ DTDC ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಮತ್ತು ಲೈವ್ ಲೊಕೇಶನ್ ಅಪ್‌ಡೇಟ್ ಆಗಿದೆ!");
+        alert("✅ DTDC ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಸೇವ್ ಆಗಿದೆ! ಈಗ ಲೈವ್ ಟ್ರ್ಯಾಕರ್ ಲಿಂಕ್ ಸಕ್ರಿಯಗೊಂಡಿದೆ.");
       } catch(e) { alert("Error: " + e.message); }
     }
 
@@ -522,7 +529,7 @@
 
             <div style="margin-top:8px; display:flex; gap:6px; align-items:center; justify-content:space-between; background:#fff3e0; padding:6px 8px; border-radius:6px;">
               <span style="font-size:0.8rem; font-weight:bold; color:${membershipPaid ? 'var(--success)' : '#d32f2f'};">
-                ${membershipPaid ? '✅ ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಆಗಿದೆ' : '⏳ ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಂಡಿಂಗ್ ಇದೆ'}
+                ${membershipPaid ? '✅ ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಆಗಿದೆ' : '⏳ ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಂಡಿಂಗ್ ಇದೆ (ಪೇಮೆಂಟ್ ಮಾಡಿ)'}
               </span>
               <button class="btn ${membershipPaid ? 'btn-danger' : 'btn-success'}" style="padding:4px 8px; font-size:0.7rem;" onclick="toggleMembership('${s.docId}', ${!membershipPaid})">
                 ${membershipPaid ? 'ಪೇಮೆಂಟ್ ರದ್ದುಮಾಡಿ' : '✔ ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಮಾಡಿ'}
@@ -554,7 +561,7 @@
           membershipPaid: status,
           updatedAt: window.serverTimestamp()
         });
-        alert(status ? "✅ ಅಂಗಡಿ ಮಾಲೀಕರ ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಮಾಡಲಾಗಿದೆ!" : "ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ ಅಪ್‌ಡೇಟ್ ಆಗಿದೆ.");
+        alert(status ? "✅ ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ ಸಕ್ಸಸ್ ಮಾಡಲಾಗಿದೆ! ಈಗ ಅಂಗಡಿ ಮಾಲೀಕರು ವಸ್ತುಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಬಹುದು." : "ಮೆಂಬರ್‌ಶಿಪ್ ಪೇಮೆಂಟ್ ಸ್ಟೇಟಸ್ ಬದಲಾಯಿಸಲಾಗಿದೆ.");
       } catch(e) { alert("Error: " + e.message); }
     }
 
