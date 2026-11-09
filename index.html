@@ -4,12 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   
-  <!-- SEO & Search Engine Keywords (ಕನ್ನಡ ಮತ್ತು ಇಂಗ್ಲಿಷ್ ಸರ್ಚ್ ಕೀಲಿಮಣೆಗಳು) -->
-  <title id="masterPageTitle">ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್ - ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಲಾನ್ ಯಾಪ್ | Namma Ooru Shopping Master Panel App</title>
-  <meta name="description" content="ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಲಾನ್ ಯಾಪ್, ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಬ್ಯಾನರ್ ಯಾಪ್, ಮಾಸ್ಟರ್ ಫೈನಲ್ ಐಡಿ ಆ್ಯಪ್, ಅನಿಲ್ ಮಾಸ್ಟರ್ ಯಾಪ್. ಅಂಗಡಿಗಳು ಹಾಗೂ ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ನಿರ್ವಹಿಸುವ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್.">
-  <meta name="keywords" content="ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಲಾನ್ ಯಾಪ್, ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಬ್ಯಾನರ್ ಯಾಪ್, ಮಾಸ್ಟರ್ ಫೈನಲ್ ಐಡಿ ಆ್ಯಪ್, ಅನಿಲ್ ಮಾಸ್ಟರ್ ಯಾಪ್, Namma Ooru Shopping Master Panel, Shopping Master Banner App, Anil Master App Shahapur">
-
-  <!-- Google Search Console Verification Meta Tag -->
+  <title id="masterPageTitle">ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್ - Master Panel App</title>
+  <meta name="description" content="ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್ ಮಾಸ್ಟರ್ ಪ್ಲಾನ್ ಯಾಪ್, ಅಂಗಡಿಗಳು ಹಾಗೂ ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ನಿರ್ವಹಿಸುವ ಮಾಸ್ಟರ್ ಪ್ಯಾನೆಲ್.">
+  <meta name="keywords" content="ನಮ್ಮ ಊರು ಶಾಪಿಂಗ್, Namma Ooru Shopping Master Panel, Dual Delivery System Shahapur">
   <meta name="google-site-verification" content="ZgEiG1KeQR2v__zpU2O3CpOBqjORyCDkBn5yInF902c" />
 
   <link rel="icon" type="image/png" sizes="192x192" href="logo.png">
@@ -99,7 +96,7 @@
     .auth-box input { width: 100%; padding: 12px; margin: 12px 0; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; text-align: center; }
 
     .master-nav { display: flex; gap: 4px; margin-bottom: 15px; flex-wrap: wrap; }
-    .m-btn { flex: 1; min-width: 18%; padding: 8px 2px; border: none; background: #e0e0e0; border-radius: 6px; font-weight: bold; font-size: 0.68rem; cursor: pointer; text-align: center; }
+    .m-btn { flex: 1; min-width: 15%; padding: 8px 2px; border: none; background: #e0e0e0; border-radius: 6px; font-weight: bold; font-size: 0.65rem; cursor: pointer; text-align: center; }
     .m-btn.active { background: var(--secondary); color: white; }
 
     .search-input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 12px; font-size: 0.85rem; }
@@ -113,6 +110,12 @@
     
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 10000; padding: 15px; }
     .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 400px; width: 100%; text-align: center; max-height: 90vh; overflow-y: auto; }
+
+    /* Step Timeline Styling */
+    .roadmap-box { background: #fff; border: 1px dashed #1976d2; padding: 10px; border-radius: 6px; margin: 8px 0; font-size: 0.78rem; }
+    .step-item { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .step-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
+    .step-dot.active { background: #388e3c; }
   </style>
 </head>
 <body>
@@ -172,9 +175,10 @@
       </label>
     </div>
 
-    <!-- 6 Tabs -->
+    <!-- 7 Tabs Including Live Dual Orders -->
     <div class="master-nav">
-      <button class="m-btn active" onclick="switchTab('shopsTab', this)">ಅಂಗಡಿ ಮಾಲೀಕರು</button>
+      <button class="m-btn active" onclick="switchTab('ordersTab', this)">📦 ಲೈವ್ ಆರ್ಡರ್ಸ್</button>
+      <button class="m-btn" onclick="switchTab('shopsTab', this)">ಅಂಗಡಿ ಮಾಲೀಕರು</button>
       <button class="m-btn" onclick="switchTab('bannersTab', this)">📢 ಜಾಹೀರಾತು</button>
       <button class="m-btn" onclick="switchTab('withdrawTab', this)">💳 ವಿತ್‌ಡ್ರಾ</button>
       <button class="m-btn" onclick="switchTab('deliveryTab', this)">ಡೆಲಿವರಿ ಬಾಯ್ಸ್</button>
@@ -182,10 +186,16 @@
       <button class="m-btn" onclick="switchTab('returnsTab', this)">ರಿಟರ್ನ್ಸ್</button>
     </div>
 
-    <input type="text" id="masterSearch" class="search-input" placeholder="🔍 ಹೆಸರು ಅಥವಾ ಐಡಿ ಬಳಸಿ ಹುಡುಕಿ..." oninput="filterMasterData()">
+    <input type="text" id="masterSearch" class="search-input" placeholder="🔍 ಹೆಸರು, ಐಡಿ ಅಥವಾ ಆರ್ಡರ್ ನಂಬರ್ ಬಳಸಿ ಹುಡುಕಿ..." oninput="filterMasterData()">
+
+    <!-- TAB 0: LIVE DUAL ORDERS (LOCAL + DTDC) -->
+    <div id="ordersTab">
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🚚 ಲೈವ್ ಡುಯಲ್ ಡೆಲಿವರಿ ಆರ್ಡರ್‌ಗಳು</h3>
+      <div id="ordersListContainer"></div>
+    </div>
 
     <!-- TAB 1: SHOP OWNERS -->
-    <div id="shopsTab">
+    <div id="shopsTab" style="display:none;">
       <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🏪 ಲಾಗಿನ್ ಆಗಿರುವ ಅಂಗಡಿ ಮಾಲೀಕರು</h3>
       <div id="shopsListContainer"></div>
     </div>
@@ -296,6 +306,7 @@
     }
 
     function switchTab(tabId, btn) {
+      document.getElementById('ordersTab').style.display = tabId === 'ordersTab' ? 'block' : 'none';
       document.getElementById('shopsTab').style.display = tabId === 'shopsTab' ? 'block' : 'none';
       document.getElementById('bannersTab').style.display = tabId === 'bannersTab' ? 'block' : 'none';
       document.getElementById('withdrawTab').style.display = tabId === 'withdrawTab' ? 'block' : 'none';
@@ -406,6 +417,150 @@
       } catch(e) { console.log("Cache load error:", e); }
     }
 
+    function processDataViews() {
+      renderOrders(allOrders);
+      renderShops(allShops);
+      renderDeliveryBoys(allDeliveryBoys);
+      renderReturnsTab(allOrders);
+      processCustomers();
+    }
+
+    // --- TAB 0: LIVE DUAL ORDERS MANAGEMENT LOGIC ---
+    function renderOrders(list) {
+      const container = document.getElementById('ordersListContainer');
+      if (list.length === 0) {
+        container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಲೈವ್ ಆರ್ಡರ್‌ಗಳಿಲ್ಲ.</p>';
+        return;
+      }
+
+      container.innerHTML = list.map(o => {
+        let deliveryMode = o.deliveryMode || 'LOCAL';
+        let status = o.status || 'CONFIRMED';
+        let isCourier = deliveryMode === 'COURIER';
+        let trackingId = o.trackingId || '';
+
+        let isStep1 = true;
+        let isStep2 = status === 'PACKED' || status === 'OUT_FOR_DELIVERY' || status === 'DELIVERED' || status === 'STEP_4';
+        let isStep3 = status === 'OUT_FOR_DELIVERY' || status === 'DELIVERED' || status === 'STEP_4';
+        let isStep4 = status === 'DELIVERED' || status === 'STEP_4';
+
+        return `
+          <div class="card-box" style="border-left:4px solid ${isCourier ? '#1976d2' : '#e65100'};">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <b>ಆರ್ಡರ್ ID: ${o.orderId || o.id}</b>
+              <span style="font-size:0.7rem; padding:2px 6px; border-radius:4px; background:${isCourier ? '#e3f2fd' : '#fff3e0'}; color:${isCourier ? '#1565c0' : '#e65100'}; font-weight:bold;">
+                ${isCourier ? '✈️ ಕೊರಿಯರ್ / DTDC (15-20km)' : '🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ (0-5km)'}
+              </span>
+            </div>
+
+            <div style="margin:6px 0; font-size:0.8rem;">
+              <b>ವಸ್ತು:</b> ${o.productName || 'ಚಪ್ಪಲಿ'} | <b>ಬೆಲೆ:</b> ₹${o.totalPrice || 0}<br>
+              <b>ಗ್ರಾಹಕರು:</b> ${o.customer ? o.customer.name : 'ಅನಿಲ್ ರಾಥೋಡ್'} (${o.customer ? o.customer.phone : 'N/A'})<br>
+              <b>ವಿಳಾಸ:</b> ${o.customer ? o.customer.village : 'ಭೀಮರಾಯನಗುಡಿ, ಶಹಾಪುರ'}
+            </div>
+
+            <!-- 1. DYNAMIC DELIVERY TYPE DROPDOWN -->
+            <div style="background:#fff; border:1px solid #ccc; padding:6px; border-radius:6px; margin:6px 0;">
+              <label style="font-size:0.75rem; font-weight:bold;">🚚 ಡೆಲಿವರಿ ಮೋಡ್ ಬದಲಾಯಿಸಿ:</label>
+              <select onchange="updateDeliveryMode('${o.id}', this.value)" style="width:100%; padding:6px; margin-top:4px; border-radius:4px; border:1px solid #999;">
+                <option value="LOCAL" ${!isCourier ? 'selected' : ''}>🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ (0-5 km - OTP ಸಿಸ್ಟಮ್)</option>
+                <option value="COURIER" ${isCourier ? 'selected' : ''}>📦 DTDC / ಕೊರಿಯರ್ (15-20 km - ಟ್ರ್ಯಾಕಿಂಗ್)</option>
+              </select>
+            </div>
+
+            <!-- 2. CONDITIONAL VISIBILITY: LOCAL (OTP) VS COURIER (AWB) -->
+            ${!isCourier ? `
+              <div style="background:#e8f5e9; padding:8px; border-radius:6px; margin:6px 0;">
+                🔑 <b>ನಿಮ್ಮ ಡೆಲಿವರಿ ಒಟಿಪಿ (Delivery OTP):</b>
+                <span style="font-size:1.1rem; font-weight:800; color:#2e7d32; margin-left:6px;">${o.deliveryOtp || '1774'}</span>
+              </div>
+            ` : `
+              <div style="background:#e3f2fd; padding:8px; border-radius:6px; margin:6px 0;">
+                📦 <b>DTDC AWB / Tracking Number:</b>
+                <div style="display:flex; gap:6px; margin-top:4px;">
+                  <input type="text" id="trackInput_${o.id}" value="${trackingId}" placeholder="DTDC ನಂಬರ್ ನಮೂದಿಸಿ" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px; text-align:center;">
+                  <button class="btn btn-primary" onclick="saveTrackingId('${o.id}')">ಸೇವ್ ಮಾಡಿ</button>
+                </div>
+                ${trackingId ? `
+                  <a href="https://www.dtdc.in/tracking.asp?strConsignmentNo=${trackingId}" target="_blank" class="btn btn-success" style="width:100%; margin-top:6px; text-decoration:none;">
+                    🌐 Track Courier Live (DTDC)
+                  </a>
+                ` : ''}
+              </div>
+            `}
+
+            <!-- 3. LIVE STATUS ROADMAP -->
+            <div class="roadmap-box">
+              <b>📌 ಆರ್ಡರ್ ಟ್ರ್ಯಾಕಿಂಗ್ ರೋಡ್‌ಮ್ಯಾಪ್:</b>
+              <div class="step-item" style="margin-top:4px;">
+                <div class="step-dot ${isStep1 ? 'active' : ''}"></div> 1. ಆರ್ಡರ್ ಕನ್ಫರ್ಮ್ ಆಗಿದೆ
+              </div>
+              <div class="step-item">
+                <div class="step-dot ${isStep2 ? 'active' : ''}"></div> 2. ಅಂಗಡಿಯಿಂದ ಪ್ಯಾಕಿಂಗ್ ಆಗಿದೆ
+              </div>
+              <div class="step-item">
+                <div class="step-dot ${isStep3 ? 'active' : ''}"></div> 
+                3. ${isCourier ? 'DTDC ಕೊರಿಯರ್‌ಗೆ ಹಸ್ತಾಂತರಿಸಲಾಗಿದೆ (Handover)' : 'ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್ ಮಾಡಿಕೊಂಡಿದ್ದಾರೆ'}
+              </div>
+              <div class="step-item">
+                <div class="step-dot ${isStep4 ? 'active' : ''}"></div> 
+                4. ${isCourier ? 'ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಮೂಲಕ ಡೆಲಿವರಿ ಆಗಿದೆ' : 'OTP ಹಾಕಿ ಡೆಲಿವರಿ ಯಶಸ್ವಿಯಾಗಿದೆ'}
+              </div>
+            </div>
+
+            <!-- 4. ADMIN DELIVERY CONFIRM BUTTON -->
+            <div style="display:flex; gap:6px; margin-top:8px;">
+              ${!isStep4 ? `
+                <button class="btn btn-success" style="flex:1; padding:8px;" onclick="markAdminDelivered('${o.id}')">
+                  ✔ ಡೆಲಿವರಿ ಕನ್ಫರ್ಮ್ ಮಾಡಿ (Mark as Delivered OK)
+                </button>
+              ` : `
+                <span style="color:var(--success); font-weight:bold; font-size:0.85rem; width:100%; text-align:center;">
+                  ✅ ಡೆಲಿವರಿ ಯಶಸ್ವಿಯಾಗಿ ಪೂರ್ಣಗೊಂಡಿದೆ!
+                </span>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function updateDeliveryMode(orderDocId, mode) {
+      try {
+        await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
+          deliveryMode: mode,
+          updatedAt: window.serverTimestamp()
+        });
+        alert(mode === 'COURIER' ? "✈️ DTDC ಕೊರಿಯರ್ ಮೋಡ್‌ಗೆ ಬದಲಾಯಿಸಲಾಗಿದೆ. OTP ಮರೆಯಾಗಿದೆ!" : "🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ ಮೋಡ್‌ಗೆ ಬದಲಾಯಿಸಲಾಗಿದೆ. OTP ಲಭ್ಯವಿದೆ.");
+      } catch(e) { alert("Error: " + e.message); }
+    }
+
+    async function saveTrackingId(orderDocId) {
+      const trackVal = document.getElementById(`trackInput_${orderDocId}`).value.trim();
+      if (!trackVal) { alert("ದಯವಿಟ್ಟು ಸರಿಯಾದ AWB ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಹಾಕಿ."); return; }
+      try {
+        await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
+          trackingId: trackVal,
+          status: 'OUT_FOR_DELIVERY',
+          updatedAt: window.serverTimestamp()
+        });
+        alert("✅ DTDC ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಯಶಸ್ವಿಯಾಗಿ ಆಪ್‌ನಲ್ಲಿ ಸೇವ್ ಆಗಿದೆ!");
+      } catch(e) { alert("Error: " + e.message); }
+    }
+
+    async function markAdminDelivered(orderDocId) {
+      if (confirm("ಈ ಆರ್ಡರ್ ಡೆಲಿವರಿ ಸಂಪೂರ್ಣಗೊಂಡಿದೆ ಎಂದು ದೃಢೀಕರಿಸಲು ಬಯಸುವಿರಾ?")) {
+        try {
+          await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
+            status: 'DELIVERED',
+            deliveredAt: window.serverTimestamp()
+          });
+          alert("✅ ಆರ್ಡರ್ ಯಶಸ್ವಿಯಾಗಿ 'Delivered' ಎಂದು ಕಂಪ್ಲೀಟ್ ಮಾಡಲಾಗಿದೆ!");
+        } catch(e) { alert("Error: " + e.message); }
+      }
+    }
+
+    // --- OTHER EXISTING FUNCTIONS ---
     async function uploadBannerImage() {
       const urlInput = document.getElementById('bannerUrlInput').value.trim();
       const fileInput = document.getElementById('bannerFileInput').files[0];
@@ -520,13 +675,6 @@
       });
     }
 
-    function processDataViews() {
-      renderShops(allShops);
-      renderDeliveryBoys(allDeliveryBoys);
-      renderReturnsTab(allOrders);
-      processCustomers();
-    }
-
     function renderShops(list) {
       const container = document.getElementById('shopsListContainer');
       if (list.length === 0) {
@@ -549,19 +697,14 @@
         if (s.paidExpiryDate && now > s.paidExpiryDate) isPaidActive = false;
 
         let shopQrPhoto = s.qrPhoto || '';
-        let qrDisplayHtml = '';
-        if (shopQrPhoto) {
-          qrDisplayHtml = `<button class="btn btn-success" onclick="openQRModal('${shopQrPhoto}', '${payableToShop}', 'ಅಂಗಡಿ ಮಾಲೀಕ')" style="padding:8px;">ಕ್ಯೂಆರ್ ಕೋಡ್</button>`;
-        } else {
-          qrDisplayHtml = `<span style="font-size:0.75rem; color:#d32f2f; font-weight:bold;">ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>`;
-        }
+        let qrDisplayHtml = shopQrPhoto ? `<button class="btn btn-success" onclick="openQRModal('${shopQrPhoto}', '${payableToShop}', 'ಅಂಗಡಿ ಮಾಲೀಕ')" style="padding:8px;">ಕ್ಯೂಆರ್ ಕೋಡ್</button>` : `<span style="font-size:0.75rem; color:#d32f2f; font-weight:bold;">ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>`;
 
         let isShopPaidSuccess = s.shopPaymentSuccess || false;
 
         return `
           <div class="card-box">
             <div style="display:flex; gap:10px; align-items:center; margin-bottom:6px;">
-              <img src="${s.photo || 'https://via.placeholder.com/60'}" style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:1px solid #ccc; cursor:pointer;" onclick="openImageModal('${s.photo}', 'ಅಂಗಡಿ ಮಾಲೀಕರ ಫೋಟೋ')" title="ದೊಡ್ಡದಾಗಿ ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ">
+              <img src="${s.photo || 'https://via.placeholder.com/60'}" style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:1px solid #ccc; cursor:pointer;" onclick="openImageModal('${s.photo}', 'ಅಂಗಡಿ ಮಾಲೀಕರ ಫೋಟೋ')">
               <div>
                 <b>${s.shopName}</b> (${s.shopType || 'General'})<br>
                 ಮಾಲೀಕರು: ${s.name} | ಫೋನ್: ${s.phone}<br>
@@ -654,7 +797,7 @@
     }
 
     async function deleteShopCompletely(docId, shopId) {
-      if (confirm(`⚠️ ಎಚ್ಚರಿಕೆ: ಈ ಅಂಗಡಿ ಮಾಲೀಕರ ಐಡಿ ಹಾಗೂ ಅವರ ಎಲ್ಲಾ ಪ್ರಾಡಕ್ಟ್‌ಗಳನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಅಳಿಸಲು ಬಯಸುವಿರಾ? ಇದು ಶಾಶ್ವತವಾಗಿ ಡಿಲೀಟ್ ಆಗುತ್ತದೆ.`)) {
+      if (confirm(`⚠️ ಎಚ್ಚರಿಕೆ: ಈ ಅಂಗಡಿ ಮಾಲೀಕರ ಐಡಿ ಹಾಗೂ ಅವರ ಎಲ್ಲಾ ಪ್ರಾಡಕ್ಟ್‌ಗಳನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಅಳಿಸಲು ಬಯಸುವಿರಾ?`)) {
         try {
           await window.deleteDoc(window.doc(window.db, "shop_owners", docId));
           const prodQuery = window.query(window.collection(window.db, "products"), window.where("shopId", "==", shopId));
@@ -680,19 +823,14 @@
         let totalDboyEarnings = (deliveredCount * 100) + Math.round(deliveredCount * 50);
 
         let dboyQrPhoto = db.qrPhoto || db.customQrPhoto || '';
-        let qrDisplayHtml = '';
-        if (dboyQrPhoto) {
-          qrDisplayHtml = `<button class="btn btn-success" onclick="openQRModal('${dboyQrPhoto}', '${totalDboyEarnings}', 'ಡೆಲಿವರಿ ಬಾಯ್')" style="padding:8px;">ಕ್ಯೂಆರ್ ಕೋಡ್</button>`;
-        } else {
-          qrDisplayHtml = `<span style="font-size:0.75rem; color:#d32f2f; font-weight:bold;">ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>`;
-        }
+        let qrDisplayHtml = dboyQrPhoto ? `<button class="btn btn-success" onclick="openQRModal('${dboyQrPhoto}', '${totalDboyEarnings}', 'ಡೆಲಿವರಿ ಬಾಯ್')" style="padding:8px;">ಕ್ಯೂಆರ್ ಕೋಡ್</button>` : `<span style="font-size:0.75rem; color:#d32f2f; font-weight:bold;">ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>`;
 
         let isDboyPaidSuccess = db.dboyPaymentSuccess || false;
 
         return `
           <div class="card-box">
             <div style="display:flex; gap:10px; align-items:center; margin-bottom:6px;">
-              <img src="${db.selfie || 'https://via.placeholder.com/60'}" style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:1px solid #ccc; cursor:pointer;" onclick="openImageModal('${db.selfie}', 'ಸೆಲ್ಫಿ ಫೋಟೋ')" title="ದೊಡ್ಡದಾಗಿ ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ">
+              <img src="${db.selfie || 'https://via.placeholder.com/60'}" style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:1px solid #ccc; cursor:pointer;" onclick="openImageModal('${db.selfie}', 'ಸೆಲ್ಫಿ ಫೋಟೋ')">
               <div>
                 <b>${db.name}</b> (ತಂದೆ: ${db.fatherName})<br>
                 ಫೋನ್: ${db.phone} | <b>ID: ${db.id}</b><br>
@@ -706,7 +844,7 @@
             </div>
 
             <div style="background:#f1f8e9; padding:8px; border-radius:6px; font-size:0.78rem; line-height:1.4;">
-              🛵 <b>ಗಳಿಕೆ (ರೂ. 100 ಫಿಕ್ಸ್ಡ್ + 10% ಕಮಿಷನ್):</b> ಡೆಲಿವರಿ ಕೊಟ್ಟಿದ್ದು: ${deliveredCount} | <b>ಒಟ್ಟು: ₹${totalDboyEarnings}</b>
+              🛵 <b>ಗಳಿಕೆ:</b> ಡೆಲಿವರಿ ಕೊಟ್ಟಿದ್ದು: ${deliveredCount} | <b>ಒಟ್ಟು: ₹${totalDboyEarnings}</b>
             </div>
 
             <div style="margin-top:8px; display:flex; gap:6px; align-items:center;">
@@ -800,14 +938,7 @@
         let shopObj = allShops.find(s => s.id === o.shopId);
         let shopQrPhoto = shopObj && shopObj.qrPhoto ? shopObj.qrPhoto : '';
 
-        let qrDisplayHtml = '';
-        if (o.customerQrPhoto) {
-          qrDisplayHtml = `<button class="btn btn-success" onclick="openQRModal('${o.customerQrPhoto}', '${o.totalPrice}', 'ಗ್ರಾಹಕರ ರಿಟರ್ನ್')" style="padding:8px;">ಗ್ರಾಹಕರ ಕ್ಯೂಆರ್ ಕೋಡ್</button>`;
-        } else if (shopQrPhoto) {
-          qrDisplayHtml = `<button class="btn btn-success" onclick="openQRModal('${shopQrPhoto}', '${o.totalPrice}', 'ಅಂಗಡಿ ರಿಟರ್ನ್')" style="padding:8px;">ಅಂಗಡಿ ಕ್ಯೂಆರ್ ಕೋಡ್</button>`;
-        } else {
-          qrDisplayHtml = `<span style="font-size:0.75rem; color:#d32f2f; font-weight:bold;">ಯಾವ ಕ್ಯೂಆರ್ ಕೋಡ್ ಅಪ್ಲೋಡ್ ಮಾಡಿಲ್ಲ</span>`;
-        }
+        let qrDisplayHtml = o.customerQrPhoto ? `<button class="btn btn-success" onclick="openQRModal('${o.customerQrPhoto}', '${o.totalPrice}', 'ಗ್ರಾಹಕರ ರಿಟರ್ನ್')" style="padding:8px;">ಗ್ರಾಹಕರ ಕ್ಯೂಆರ್ ಕೋಡ್</button>` : (shopQrPhoto ? `<button class="btn btn-success" onclick="openQRModal('${shopQrPhoto}', '${o.totalPrice}', 'ಅಂಗಡಿ ರಿಟರ್ನ್')" style="padding:8px;">ಅಂಗಡಿ ಕ್ಯೂಆರ್ ಕೋಡ್</button>` : `<span style="font-size:0.75rem; color:#d32f2f; font-weight:bold;">ಯಾವ ಕ್ಯೂಆರ್ ಕೋಡ್ ಅಪ್ಲೋಡ್ ಮಾಡಿಲ್ಲ</span>`);
 
         return `
           <div class="card-box" style="border-left: 4px solid #d32f2f;">
@@ -870,6 +1001,7 @@
 
     function filterMasterData() {
       const q = document.getElementById('masterSearch').value.toLowerCase();
+      renderOrders(allOrders.filter(o => (o.orderId && o.orderId.toLowerCase().includes(q)) || (o.productName && o.productName.toLowerCase().includes(q)) || (o.customer && o.customer.phone.includes(q))));
       renderShops(allShops.filter(s => s.name.toLowerCase().includes(q) || s.id.includes(q) || s.shopName.toLowerCase().includes(q)));
       renderDeliveryBoys(allDeliveryBoys.filter(db => db.name.toLowerCase().includes(q) || db.id.includes(q)));
       renderCustomers(allCustomers.filter(c => (c.name && c.name.toLowerCase().includes(q)) || c.phone.includes(q)));
