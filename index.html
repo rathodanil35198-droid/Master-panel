@@ -130,12 +130,12 @@
     </div>
   </div>
 
-  <!-- Image & QR Viewer Modal -->
-  <div id="imageModal" class="modal">
-    <div class="modal-content">
-      <h3 id="modalTitle">ಫೋಟೋ / ಕ್ಯೂಆರ್ ವೀಕ್ಷಣೆ</h3>
+  <!-- Image & Zoom Viewer Modal -->
+  <div id="imageModal" class="modal" onclick="closeImageModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <h3 id="modalTitle">ಫೋಟೋ / ಕ್ಯೂಆರ್ ವೀಕ್ಷಣೆ (Zoom)</h3>
       <div id="modalBodyContent">
-        <img id="modalImgSrc" src="" style="width:100%; max-height:350px; object-fit:contain; background:#fff; margin:10px 0; border-radius:6px;">
+        <img id="modalImgSrc" src="" style="width:100%; max-height:70vh; object-fit:contain; background:#fff; margin:10px 0; border-radius:6px; cursor:zoom-in;" onclick="toggleZoom(this)">
       </div>
       <div style="display:flex; gap:10px; margin-top:10px;">
         <a id="downloadLink" href="" download="document.jpg" class="btn btn-success" style="flex:1; text-decoration:none; text-align:center; padding:8px;">ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ</a>
@@ -171,9 +171,9 @@
 
     <input type="text" id="masterSearch" class="search-input" placeholder="🔍 ಹೆಸರು, ಐಡಿ ಅಥವಾ ಆರ್ಡರ್ ನಂಬರ್ ಬಳಸಿ ಹುಡುಕಿ..." oninput="filterMasterData()">
 
-    <!-- TAB 0: LIVE DUAL ORDERS (LOCAL + DTDC) + UTR VERIFICATION -->
+    <!-- TAB 0: LIVE DUAL ORDERS + SMART FAKE/REAL CHECKER -->
     <div id="ordersTab">
-      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">📦 ಗ್ರಾಹಕರ ಲೈವ್ ಆರ್ಡರ್‌ಗಳು & UPI ಪಾವತಿ ಪರಿಶೀಲನೆ (ನಕಲಿ/ಒರಿಜಿನಲ್ UTR ಚೆಕ್)</h3>
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">📦 ಗ್ರಾಹಕರ ಲೈವ್ ಆರ್ಡರ್‌ಗಳು & ಆಟೋಮ್ಯಾಟಿಕ್ ನಕಲಿ/ಒರಿಜಿನಲ್ ಪಾವತಿ ಪರಿಶೀಲನೆ</h3>
       <div id="ordersListContainer"></div>
     </div>
 
@@ -368,7 +368,7 @@
       processCustomers();
     }
 
-    // --- TAB 0: LIVE ORDERS + AUTOMATIC UTR DUPLICATE (FAKE/REAL) CHECKER ---
+    // --- TAB 0: LIVE ORDERS + AUTOMATIC UTR / SCREENSHOT DUPLICATE CHECKER ---
     function renderOrders(list) {
       const container = document.getElementById('ordersListContainer');
       if (list.length === 0) {
@@ -376,50 +376,68 @@
         return;
       }
 
-      // UTR Duplication Map check
+      // Check Duplicates across UTR and Payment Proof Photos
       let utrCounts = {};
+      let proofCounts = {};
       list.forEach(o => {
-        if (o.upiTransactionId && o.upiTransactionId.length >= 8) {
-          let cleanUtr = o.upiTransactionId.trim();
-          utrCounts[cleanUtr] = (utrCounts[cleanUtr] || 0) + 1;
+        if (o.upiTransactionId && o.upiTransactionId.length >= 6) {
+          let cleanUtr = o.upiTransactionId.trim().toLowerCase();
+          if (cleanUtr !== 'ನಮೂದಿಸಿಲ್ಲ' && cleanUtr !== 'na') {
+            utrCounts[cleanUtr] = (utrCounts[cleanUtr] || 0) + 1;
+          }
+        }
+        if (o.paymentProofPhoto && o.paymentProofPhoto.length > 50) {
+          proofCounts[o.paymentProofPhoto] = (proofCounts[o.paymentProofPhoto] || 0) + 1;
         }
       });
 
       container.innerHTML = list.map(o => {
         let status = o.status || 'CONFIRMED';
-        let paymentStatus = o.paymentStatus || 'PENDING';
         let upiTxn = o.upiTransactionId || '';
         let proofPhoto = o.paymentProofPhoto || '';
-        let isDuplicateUtr = (upiTxn && utrCounts[upiTxn.trim()] > 1);
+        
+        let cleanUtr = upiTxn.trim().toLowerCase();
+        let isDuplicateUtr = (cleanUtr && cleanUtr !== 'ನಮೂದಿಸಿಲ್ಲ' && utrCounts[cleanUtr] > 1);
+        let isDuplicateProof = (proofPhoto && proofCounts[proofPhoto] > 1);
+        let isFakeOrDuplicate = isDuplicateUtr || isDuplicateProof;
 
         let verificationBadge = '';
-        if (o.paymentMode === 'UPI') {
-          if (isDuplicateUtr) {
-            verificationBadge = `<div style="background:#ffebee; color:#d32f2f; border:1px solid #ffcdd2; padding:6px; border-radius:4px; font-weight:bold; margin-top:6px;">⚠️ ಎಚ್ಚರಿಕೆ: ಇದು ಡ್ಯೂಪ್ಲಿಕೇಟ್ / ಹಳೆ UTR (ನಕಲಿ ಪಾವತಿ ಸಂಭವನೀಯತೆ!)</div>`;
-          } else if (paymentStatus === 'SUCCESS' || paymentStatus === 'CONFIRMED') {
-            verificationBadge = `<div style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; padding:6px; border-radius:4px; font-weight:bold; margin-top:6px;">✔ ಒರಿಜಿನಲ್ ಹೊಸ UTR (ಪಾವತಿ ಸರಿಯಾಗಿದೆ)</div>`;
-          } else {
-            verificationBadge = `<div style="background:#fff3e0; color:#e65100; border:1px solid #ffe0b2; padding:6px; border-radius:4px; font-weight:bold; margin-top:6px;">⏳ ಪಾವತಿ ಪರಿಶೀಲನೆ ಬಾಕಿ ಇದೆ</div>`;
-          }
+        if (isFakeOrDuplicate) {
+          verificationBadge = `<div style="background:#ffebee; color:#d32f2f; border:1px solid #ffcdd2; padding:6px; border-radius:4px; font-weight:bold; margin-top:6px;">⚠️ ಎಚ್ಚರಿಕೆ: ಇದು ನಕಲಿ / ಹಳೆ ಸ್ಕ್ರೀನ್‌ಶಾಟ್ ಅಥವಾ ಡ್ಯೂಪ್ಲಿಕೇಟ್ UTR!</div>`;
+        } else {
+          verificationBadge = `<div style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; padding:6px; border-radius:4px; font-weight:bold; margin-top:6px;">✔ ಒರಿಜಿನಲ್ ಹೊಸ ಪಾವತಿ (ಪರಿಶೀಲಿಸಲಾಗಿದೆ)</div>`;
         }
 
         let proofHtml = '';
         if (proofPhoto) {
-          proofHtml = `<div style="margin-top:6px;"><button class="btn btn-primary" onclick="openImageModal('${proofPhoto}', 'ಪಾವತಿ ಸ್ಕ್ರೀನ್‌ಶಾಟ್')">📸 ಪಾವತಿ ಸ್ಕ್ರೀನ್‌ಶಾಟ್ ನೋಡಿ</button></div>`;
-        }
-
-        let actionButtonsHtml = '';
-        if (status !== 'CANCELLED' && status !== 'COMPLETED' && status !== 'DELIVERED') {
-          actionButtonsHtml = `
-            <div style="display:flex; gap:8px; margin-top:8px;">
-              <button class="btn btn-success" style="flex:1;" onclick="updateOrderStatus('${o.id}', 'CONFIRMED')">✅ ಆರ್ಡರ್ ಕನ್ಫರ್ಮ್ ಮಾಡಿ</button>
-              <button class="btn btn-danger" style="flex:1;" onclick="updateOrderStatus('${o.id}', 'CANCELLED')">❌ ನಕಲಿ / ಕ್ಯಾನ್ಸಲ್ ಮಾಡಿ</button>
+          proofHtml = `
+            <div style="margin-top:6px; text-align:center;">
+              <img src="${proofPhoto}" style="width:100px; height:100px; object-fit:cover; border-radius:6px; border:2px solid #ccc; cursor:pointer;" onclick="openImageModal('${proofPhoto}', 'ಪಾವತಿ ಸ್ಕ್ರೀನ್‌ಶಾಟ್ (Zoom)')" title="ಫೋಟೋ ದೊಡ್ಡದಾಗಿ ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ">
+              <div style="font-size:0.7rem; color:#666;">ಫೋಟೋ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ ಜೂಮ್ ಮಾಡಿ</div>
             </div>
           `;
         }
 
+        // Conditional Buttons: If fake/duplicate -> Show ONLY Cancel button. If original -> Show ONLY Confirm button.
+        let actionButtonsHtml = '';
+        if (status !== 'CANCELLED' && status !== 'COMPLETED' && status !== 'DELIVERED') {
+          if (isFakeOrDuplicate) {
+            actionButtonsHtml = `
+              <div style="margin-top:8px;">
+                <button class="btn btn-danger" style="width:100%; padding:10px; font-size:0.85rem;" onclick="updateOrderStatus('${o.id}', 'CANCELLED')">❌ ನಕಲಿ ಪಾವತಿ - ಆರ್ಡರ್ ಕ್ಯಾನ್ಸಲ್ ಮಾಡಿ</button>
+              </div>
+            `;
+          } else {
+            actionButtonsHtml = `
+              <div style="margin-top:8px;">
+                <button class="btn btn-success" style="width:100%; padding:10px; font-size:0.85rem;" onclick="updateOrderStatus('${o.id}', 'CONFIRMED')">✅ ಒರಿಜಿನಲ್ ಪಾವತಿ - ಆರ್ಡರ್ ಕನ್ಫರ್ಮ್ ಮಾಡಿ</button>
+              </div>
+            `;
+          }
+        }
+
         return `
-          <div class="card-box" style="border-left:4px solid ${isDuplicateUtr ? '#d32f2f' : 'var(--primary)'};">
+          <div class="card-box" style="border-left:4px solid ${isFakeOrDuplicate ? '#d32f2f' : 'var(--success)'};">
             <b>ಆರ್ಡರ್ ID: ${o.orderId || o.id}</b><br>
             <b>ವಸ್ತು:</b> ${o.productName} - ₹${o.totalPrice}<br>
             <b>ಅಂಗಡಿ:</b> ${o.shopName || 'Store'} | <b>ಗ್ರಾಹಕರು:</b> ${o.customer?.name} (${o.customer?.phone})<br>
@@ -594,7 +612,6 @@
       `).join('');
     }
 
-    // --- TAB 6: RETURNS & UPI REFUND INTENT GENERATOR ---
     function renderReturnsTab(orders) {
       const container = document.getElementById('returnsListContainer');
       let returnOrders = orders.filter(o => o.isReturned || o.status === 'RETURNED' || o.status === 'RETURN_REQUESTED');
@@ -626,12 +643,22 @@
 
     function openImageModal(imgSrc, title) {
       document.getElementById('modalTitle').innerText = title;
-      document.getElementById('modalBodyContent').innerHTML = `<img src="${imgSrc}" style="width:100%; max-height:350px; object-fit:contain; background:#fff; margin:10px 0; border-radius:6px;">`;
+      document.getElementById('modalImgSrc').src = imgSrc;
       document.getElementById('downloadLink').href = imgSrc;
       document.getElementById('imageModal').style.display = 'flex';
     }
 
     function closeImageModal() { document.getElementById('imageModal').style.display = 'none'; }
+
+    function toggleZoom(img) {
+      if (img.style.transform === 'scale(1.8)') {
+        img.style.transform = 'scale(1)';
+        img.style.cursor = 'zoom-in';
+      } else {
+        img.style.transform = 'scale(1.8)';
+        img.style.cursor = 'zoom-out';
+      }
+    }
 
     function filterMasterData() {
       const q = document.getElementById('masterSearch').value.toLowerCase();
