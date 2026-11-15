@@ -46,7 +46,7 @@
   </script>
 
   <style>
-    :root { --primary: #e65100; --secondary: #1976d2; --bg: #f4f6f8; --dark: #212121; --success: #388e3c; }
+    :root { --primary: #e65100; --secondary: #1976d2; --bg: #f4f6f8; --dark: #212121; --success: #388e3c; --danger: #d32f2f; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background-color: var(--bg); color: var(--dark); padding: 10px; padding-bottom: 40px; }
 
@@ -100,7 +100,7 @@
     .search-input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 12px; font-size: 0.85rem; }
     .card-box { background: #fafafa; border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.82rem; }
     .btn { padding: 6px 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; font-size: 0.75rem; text-decoration: none; display: inline-block; text-align: center; }
-    .btn-danger { background: #e53935; }
+    .btn-danger { background: var(--danger); }
     .btn-success { background: var(--success); }
     .btn-primary { background: var(--secondary); }
 
@@ -171,9 +171,9 @@
 
     <input type="text" id="masterSearch" class="search-input" placeholder="🔍 ಹೆಸರು, ಐಡಿ ಅಥವಾ ಆರ್ಡರ್ ನಂಬರ್ ಬಳಸಿ ಹುಡುಕಿ..." oninput="filterMasterData()">
 
-    <!-- TAB 0: LIVE DUAL ORDERS (LOCAL + DTDC) -->
+    <!-- TAB 0: LIVE DUAL ORDERS (LOCAL + DTDC) + UTR VERIFICATION -->
     <div id="ordersTab">
-      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🚚 ಗ್ರಾಹಕರು ಆರ್ಡರ್ ಮಾಡಿದ ಹಾಗೂ ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್-ಅಪ್ ಆದ ಲೈವ್ ಆರ್ಡರ್‌ಗಳು</h3>
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">📦 ಗ್ರಾಹಕರ ಲೈವ್ ಆರ್ಡರ್‌ಗಳು & UPI ಪಾವತಿ ಪರಿಶೀಲನೆ (ನಕಲಿ/ಒರಿಜಿನಲ್ UTR ಚೆಕ್)</h3>
       <div id="ordersListContainer"></div>
     </div>
 
@@ -216,7 +216,7 @@
 
     <!-- TAB 6: RETURNS & URGENT ORDERS -->
     <div id="returnsTab" style="display:none;">
-      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🔄 ರಿಟರ್ನ್ ಆರ್ಡರ್ ಪೇಮೆಂಟ್</h3>
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🔄 ರಿಟರ್ನ್ ಆರ್ಡರ್ಸ್ & UPI ರೀಫಂಡ್ (Pay via UPI)</h3>
       <div id="returnsListContainer"></div>
     </div>
   </div>
@@ -368,7 +368,7 @@
       processCustomers();
     }
 
-    // --- TAB 0: LIVE DUAL ORDERS MANAGEMENT LOGIC ---
+    // --- TAB 0: LIVE ORDERS + AUTOMATIC UTR DUPLICATE (FAKE/REAL) CHECKER ---
     function renderOrders(list) {
       const container = document.getElementById('ordersListContainer');
       if (list.length === 0) {
@@ -376,89 +376,75 @@
         return;
       }
 
+      // UTR Duplication Map check
+      let utrCounts = {};
+      list.forEach(o => {
+        if (o.upiTransactionId && o.upiTransactionId.length >= 8) {
+          let cleanUtr = o.upiTransactionId.trim();
+          utrCounts[cleanUtr] = (utrCounts[cleanUtr] || 0) + 1;
+        }
+      });
+
       container.innerHTML = list.map(o => {
         let status = o.status || 'CONFIRMED';
-        let isPickedUpByDboy = o.isPickedUp === true || status === 'PICKED_UP_BY_DBOY';
-        let deliveryMode = o.deliveryMode || ''; 
-        let trackingId = o.trackingId || '';
+        let paymentStatus = o.paymentStatus || 'PENDING';
+        let upiTxn = o.upiTransactionId || '';
+        let proofPhoto = o.paymentProofPhoto || '';
+        let isDuplicateUtr = (upiTxn && utrCounts[upiTxn.trim()] > 1);
 
-        // ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್ ಮಾಡಿದ ತಕ್ಷಣ 'ಕನ್ನಡದಲ್ಲಿ ಹೊಸ ಆರ್ಡರ್ ಬಂದಿದೆ ಅಪ್ಡೇಟ್ ಮಾಡಿ' ಬಟನ್/ಬಾಕ್ಸ್ ಕಾಣಿಸುವುದು
-        let updateNeededHtml = '';
-        if (isPickedUpByDboy && !deliveryMode) {
-          updateNeededHtml = `
-            <div style="background:#e8f5e9; border:2px solid #388e3c; padding:10px; border-radius:6px; margin:8px 0;">
-              <span style="color:#2e7d32; font-weight:bold; font-size:0.85rem;">🔔 ಕನ್ನಡದಲ್ಲಿ ಹೊಸ ಆರ್ಡರ್ ಬಂದಿದೆ ಅಪ್ಡೇಟ್ ಮಾಡಿ:</span>
-              <p style="font-size:0.75rem; color:#444; margin-top:2px;">ಡೆಲಿವರಿ ಬಾಯ್ ವಸ್ತುವನ್ನು ಪಿಕ್-ಅಪ್ ಮಾಡಿದ್ದಾರೆ. ಇದನ್ನು ಗ್ರಾಹಕರಿಗೆ ತಲುಪಿಸಲು ಮೋಡ್ ಆಯ್ಕೆಮಾಡಿ:</p>
-              
-              <select id="modeSelect_${o.id}" style="width:100%; padding:8px; margin-top:6px; border:1px solid #388e3c; border-radius:4px; font-weight:bold;">
-                <option value="LOCAL">🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ ಬಾಯ್ ಮೂಲಕ ಕಳುಹಿಸಿ (OTP ತೋರಿಸಿ)</option>
-                <option value="COURIER">✈️ DTDC ಕೊರಿಯರ್ ಮೂಲಕ ಕಳುಹಿಸಿ (ಲೈವ್ ಟ್ರ್ಯಾಕಿಂಗ್)</option>
-              </select>
-              
-              <button class="btn btn-success" style="width:100%; margin-top:6px; padding:8px;" onclick="confirmDeliveryMode('${o.id}')">
-                ✔ ಮೋಡ್ ಖಚಿತಪಡಿಸಿ ಕಳುಹಿಸಿ
-              </button>
-            </div>
-          `;
+        let verificationBadge = '';
+        if (o.paymentMode === 'UPI') {
+          if (isDuplicateUtr) {
+            verificationBadge = `<div style="background:#ffebee; color:#d32f2f; border:1px solid #ffcdd2; padding:6px; border-radius:4px; font-weight:bold; margin-top:6px;">⚠️ ಎಚ್ಚರಿಕೆ: ಇದು ಡ್ಯೂಪ್ಲಿಕೇಟ್ / ಹಳೆ UTR (ನಕಲಿ ಪಾವತಿ ಸಂಭವನೀಯತೆ!)</div>`;
+          } else if (paymentStatus === 'SUCCESS' || paymentStatus === 'CONFIRMED') {
+            verificationBadge = `<div style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; padding:6px; border-radius:4px; font-weight:bold; margin-top:6px;">✔ ಒರಿಜಿನಲ್ ಹೊಸ UTR (ಪಾವತಿ ಸರಿಯಾಗಿದೆ)</div>`;
+          } else {
+            verificationBadge = `<div style="background:#fff3e0; color:#e65100; border:1px solid #ffe0b2; padding:6px; border-radius:4px; font-weight:bold; margin-top:6px;">⏳ ಪಾವತಿ ಪರಿಶೀಲನೆ ಬಾಕಿ ಇದೆ</div>`;
+          }
         }
 
-        let modeDetailsHtml = '';
-        if (deliveryMode === 'LOCAL') {
-          modeDetailsHtml = `
-            <div style="background:#e3f2fd; padding:8px; border-radius:6px; margin:6px 0; text-align:center;">
-              <span style="font-size:0.8rem; color:#1565c0; font-weight:bold;">🔑 ಲೋಕಲ್ ಡೆಲಿವರಿ ಒಟಿಪಿ (ಗ್ರಾಹಕರಿಗೆ ಮಾತ್ರ ಗೋಚರಿಸುತ್ತದೆ):</span>
-              <div style="font-size:1.3rem; font-weight:bold; color:#0d47a1; margin-top:2px;">${o.deliveryOtp || '8740'}</div>
-            </div>
-          `;
-        } else if (deliveryMode === 'COURIER') {
-          modeDetailsHtml = `
-            <div style="background:#fff3e0; padding:8px; border-radius:6px; margin:6px 0;">
-              <span style="font-size:0.8rem; color:#e65100; font-weight:bold;">📦 DTDC ಕೊರಿಯರ್ ಟ್ರ್ಯಾಕಿಂಗ್ (ಗ್ರಾಹಕರಿಗೆ ಒಟಿಪಿ ಹೋಗುವುದಿಲ್ಲ):</span>
-              <div style="display:flex; gap:6px; margin-top:4px;">
-                <input type="text" id="trackInput_${o.id}" value="${trackingId}" placeholder="DTDC AWB ನಂಬರ್ ಹಾಕಿ" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
-                <button class="btn btn-primary" onclick="saveCourierTracking('${o.id}')">ಸೇವ್</button>
-              </div>
-              ${trackingId ? `<a href="https://www.dtdc.in/tracking.asp?strConsignmentNo=${trackingId}" target="_blank" style="display:inline-block; margin-top:6px; color:#fff; background:#1976d2; padding:4px 8px; border-radius:4px; font-size:0.75rem; text-decoration:none;">🌐 DTDC ಲೈವ್ ಟ್ರ್ಯಾಕಿಂಗ್ ನೋಡಿ</a>` : ''}
+        let proofHtml = '';
+        if (proofPhoto) {
+          proofHtml = `<div style="margin-top:6px;"><button class="btn btn-primary" onclick="openImageModal('${proofPhoto}', 'ಪಾವತಿ ಸ್ಕ್ರೀನ್‌ಶಾಟ್')">📸 ಪಾವತಿ ಸ್ಕ್ರೀನ್‌ಶಾಟ್ ನೋಡಿ</button></div>`;
+        }
+
+        let actionButtonsHtml = '';
+        if (status !== 'CANCELLED' && status !== 'COMPLETED' && status !== 'DELIVERED') {
+          actionButtonsHtml = `
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button class="btn btn-success" style="flex:1;" onclick="updateOrderStatus('${o.id}', 'CONFIRMED')">✅ ಆರ್ಡರ್ ಕನ್ಫರ್ಮ್ ಮಾಡಿ</button>
+              <button class="btn btn-danger" style="flex:1;" onclick="updateOrderStatus('${o.id}', 'CANCELLED')">❌ ನಕಲಿ / ಕ್ಯಾನ್ಸಲ್ ಮಾಡಿ</button>
             </div>
           `;
         }
 
         return `
-          <div class="card-box" style="border-left:4px solid ${isPickedUpByDboy ? 'var(--success)' : 'var(--primary)'};">
+          <div class="card-box" style="border-left:4px solid ${isDuplicateUtr ? '#d32f2f' : 'var(--primary)'};">
             <b>ಆರ್ಡರ್ ID: ${o.orderId || o.id}</b><br>
             <b>ವಸ್ತು:</b> ${o.productName} - ₹${o.totalPrice}<br>
             <b>ಅಂಗಡಿ:</b> ${o.shopName || 'Store'} | <b>ಗ್ರಾಹಕರು:</b> ${o.customer?.name} (${o.customer?.phone})<br>
-            <b>ಸ್ಥಿತಿ:</b> ${o.status} ${isPickedUpByDboy ? ' | 🛵 ಡೆಲಿವರಿ ಬಾಯ್ ಪಿಕ್ ಮಾಡಿದ್ದಾರೆ' : ''}
-
-            ${updateNeededHtml}
-            ${modeDetailsHtml}
+            <b>ಪಾವತಿ ವಿಧಾನ:</b> ${o.paymentMode || 'UPI'} | <b>UTR ID:</b> ${upiTxn || 'ನಮೂದಿಸಿಲ್ಲ'}<br>
+            <b>ಆರ್ಡರ್ ಸ್ಥಿತಿ:</b> ${status}
+            
+            ${verificationBadge}
+            ${proofHtml}
+            ${actionButtonsHtml}
           </div>
         `;
       }).join('');
     }
 
-    async function confirmDeliveryMode(orderDocId) {
-      const mode = document.getElementById(`modeSelect_${orderDocId}`).value;
-      try {
-        await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
-          deliveryMode: mode,
-          status: mode === 'LOCAL' ? 'OUT_FOR_DELIVERY' : 'HANDOVER_TO_DTDC',
-          updatedAt: window.serverTimestamp()
-        });
-        alert(mode === 'LOCAL' ? "✅ ಲೋಕಲ್ ಡೆಲಿವರಿ ಮೋಡ್ ಸೆಟ್ ಮಾಡಲಾಗಿದೆ." : "✅ DTDC ಕೊರಿಯರ್ ಮೋಡ್ ಸೆಟ್ ಮಾಡಲಾಗಿದೆ.");
-      } catch(e) { alert("Error: " + e.message); }
-    }
-
-    async function saveCourierTracking(orderDocId) {
-      const trackVal = document.getElementById(`trackInput_${orderDocId}`).value.trim();
-      if (!trackVal) { alert("ದಯವಿಟ್ಟು ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಹಾಕಿ."); return; }
-      try {
-        await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
-          trackingId: trackVal,
-          updatedAt: window.serverTimestamp()
-        });
-        alert("✅ DTDC ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ಸೇವ್ ಆಗಿದೆ!");
-      } catch(e) { alert("Error: " + e.message); }
+    async function updateOrderStatus(orderDocId, newStatus) {
+      if (confirm(`ಈ ಆರ್ಡರ್ ಅನ್ನು '${newStatus}' ಎಂದು ಬದಲಾಯಿಸಲು ಬಯಸುವಿರಾ?`)) {
+        try {
+          await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
+            status: newStatus,
+            paymentStatus: newStatus === 'CONFIRMED' ? 'SUCCESS' : 'FAILED',
+            updatedAt: window.serverTimestamp()
+          });
+          alert("✅ ಆರ್ಡರ್ ಸ್ಥಿತಿ ಯಶಸ್ವಿಯಾಗಿ ಅಪ್‌ಡೇಟ್ ಆಗಿದೆ!");
+        } catch(e) { alert("Error: " + e.message); }
+      }
     }
 
     async function uploadBannerImage() {
@@ -608,6 +594,7 @@
       `).join('');
     }
 
+    // --- TAB 6: RETURNS & UPI REFUND INTENT GENERATOR ---
     function renderReturnsTab(orders) {
       const container = document.getElementById('returnsListContainer');
       let returnOrders = orders.filter(o => o.isReturned || o.status === 'RETURNED' || o.status === 'RETURN_REQUESTED');
@@ -615,12 +602,26 @@
         container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ರಿಟರ್ನ್ ಆರ್ಡರ್‌ಗಳಿಲ್ಲ.</p>';
         return;
       }
-      container.innerHTML = returnOrders.map(o => `
-        <div class="card-box" style="border-left: 4px solid #d32f2f;">
-          <b>${o.productName}</b> (₹${o.totalPrice})<br>
-          ಗ್ರಾಹಕರು: ${o.customer ? o.customer.name : 'N/A'} (${o.customer ? o.customer.phone : ''})
-        </div>
-      `).join('');
+      container.innerHTML = returnOrders.map(o => {
+        let custUpi = o.customerUpiId || '';
+        let refundAmt = o.totalPrice || 0;
+        let qrPhoto = o.customerQrPhoto || '';
+
+        let upiPayLink = custUpi ? `upi://pay?pa=${custUpi}&am=${refundAmt}&cu=INR&tn=Refund_Order_${o.orderId || o.id}` : '#';
+
+        return `
+          <div class="card-box" style="border-left: 4px solid var(--danger);">
+            <b>${o.productName}</b> (₹${refundAmt})<br>
+            ಗ್ರಾಹಕರು: ${o.customer ? o.customer.name : 'N/A'} (${o.customer ? o.customer.phone : ''})<br>
+            <b>ಗ್ರಾಹಕರ UPI ID:</b> ${custUpi || 'ನಮೂದಿಸಿಲ್ಲ'}<br>
+            ${qrPhoto ? `<button class="btn btn-primary" style="margin-top:6px;" onclick="openImageModal('${qrPhoto}', 'ಗ್ರಾಹಕರ QR ಕೋಡ್')">📱 ಗ್ರಾಹಕರ QR ಕೋಡ್ ನೋಡಿ</button>` : ''}
+            
+            <div style="margin-top:8px;">
+              ${custUpi ? `<a href="${upiPayLink}" class="btn btn-success" style="width:100%; text-decoration:none; text-align:center; padding:8px;">📲 ನೇರವಾಗಿ UPI ಗೆ ಹಣ ಕಳುಹಿಸಿ (Pay ₹${refundAmt})</a>` : '<span style="color:red; font-size:0.75rem;">ಗ್ರಾಹಕರು UPI ID ನೀಡಲಿಲ್ಲ</span>'}
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
     function openImageModal(imgSrc, title) {
