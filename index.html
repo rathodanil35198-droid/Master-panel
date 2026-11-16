@@ -125,7 +125,7 @@
 </head>
 <body>
 
-  <!-- Splash Screen (Fixed to 2 seconds auto-hide) -->
+  <!-- Splash Screen (2 Seconds) -->
   <div id="splashScreen">
     <div class="splash-logo-box">
       <img src="logo.png" alt="Logo" onerror="this.src='https://via.placeholder.com/160/1e88e5/ffffff?text=MASTER'">
@@ -184,9 +184,9 @@
 
     <input type="text" id="masterSearch" class="search-input" placeholder="🔍 ಹೆಸರು, ಐಡಿ ಅಥವಾ ಆರ್ಡರ್ ನಂಬರ್ ಬಳಸಿ ಹುಡುಕಿ..." oninput="filterMasterData()">
 
-    <!-- TAB 0: LIVE DUAL ORDERS -->
+    <!-- TAB 0: LIVE DUAL ORDERS WITH LOCAL vs DTDC SHIPPING OPTIONS -->
     <div id="ordersTab">
-      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">📦 ಗ್ರಾಹಕರ ಲೈವ್ ಆರ್ಡರ್‌ಗಳು & ಆಟೋಮ್ಯಾಟಿಕ್ ನಕಲಿ/ಒರಿಜಿನಲ್ ಪಾವತಿ ಪರಿಶೀಲನೆ</h3>
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">📦 ಗ್ರಾಹಕರ ಲೈವ್ ಆರ್ಡರ್‌ಗಳು & ಡೆಲಿವರಿ ಮೋಡ್ (Local vs DTDC)</h3>
       <div id="ordersListContainer"></div>
     </div>
 
@@ -276,14 +276,11 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      // Exactly 2 seconds (2000 milliseconds) Splash Screen Timer
       setTimeout(() => {
         const splash = document.getElementById('splashScreen');
         if (splash) {
           splash.style.opacity = '0';
-          setTimeout(() => { 
-            splash.style.display = 'none'; 
-          }, 600);
+          setTimeout(() => { splash.style.display = 'none'; }, 600);
         }
       }, 2000);
 
@@ -386,6 +383,7 @@
       processCustomers();
     }
 
+    // --- TAB 0: LIVE ORDERS WITH LOCAL vs DTDC SHIPPING OPTIONS ---
     function renderOrders(list) {
       const container = document.getElementById('ordersListContainer');
       if (list.length === 0) {
@@ -411,6 +409,8 @@
         let status = o.status || 'CONFIRMED';
         let upiTxn = o.upiTransactionId || '';
         let proofPhoto = o.paymentProofPhoto || '';
+        let deliveryMode = o.deliveryMode || ''; // 'LOCAL' or 'DTDC'
+        let dtdcAwb = o.dtdcAwbNumber || '';
         
         let cleanUtr = upiTxn.trim().toLowerCase();
         let isDuplicateUtr = (cleanUtr && cleanUtr !== 'ನಮೂದಿಸಿಲ್ಲ' && utrCounts[cleanUtr] > 1);
@@ -428,6 +428,37 @@
           </div>
         ` : '';
 
+        // Shipping mode selection controls when packed/ready
+        let shippingActionHtml = `
+          <div style="background:#f0f4f8; padding:8px; border-radius:6px; margin-top:8px; font-size:0.8rem;">
+            <b>🚚 ಡೆಲಿವರಿ ವಿಧಾನ ಆಯ್ಕೆಮಾಡಿ:</b>
+            <div style="display:flex; gap:6px; margin-top:6px;">
+              <button class="btn btn-primary" style="flex:1; padding:6px;" onclick="setOrderDeliveryMode('${o.id}', 'LOCAL')">🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ ಬಾಯ್</button>
+              <button class="btn btn-warning" style="flex:1; padding:6px;" onclick="setOrderDeliveryMode('${o.id}', 'DTDC')">📦 DTDC ಕೊರಿಯರ್ ಪಿಕಪ್</button>
+            </div>
+          </div>
+        `;
+
+        if (deliveryMode === 'LOCAL') {
+          shippingActionHtml = `
+            <div style="background:#e8f5e9; padding:6px; border-radius:6px; margin-top:6px; font-size:0.8rem; color:#2e7d32; font-weight:bold;">
+              ✔ ಲೋಕಲ್ ಡೆಲಿವರಿ ಬಾಯ್‌ಗೆ ನೀಡಲಾಗಿದೆ (<a href="#" onclick="setOrderDeliveryMode('${o.id}', '')" style="color:#d32f2f; font-size:0.7rem;">ಬದಲಾಯಿಸಿ</a>)
+            </div>
+          `;
+        } else if (deliveryMode === 'DTDC') {
+          shippingActionHtml = `
+            <div style="background:#fff3e0; padding:8px; border-radius:6px; margin-top:6px; font-size:0.8rem;">
+              <b>📦 DTDC ಕೊರಿಯರ್ ಪಿಕಪ್ (Doorstep Pickup):</b><br>
+              <div style="display:flex; gap:6px; margin-top:4px;">
+                <input type="text" id="awb_${o.id}" value="${dtdcAwb}" placeholder="DTDC AWB ನಂಬರ್ ಹಾಕಿ" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px; font-size:0.8rem;">
+                <button class="btn btn-success" style="padding:6px 10px;" onclick="saveDtdcAwb('${o.id}')">💾 ಸೇವ್</button>
+              </div>
+              ${dtdcAwb ? `<div style="margin-top:4px;"><a href="https://www.dtdc.in/tracking.asp" target="_blank" style="color:var(--secondary); font-weight:bold; text-decoration:underline;">🔍 DTDC ವೆಬ್‌ಸೈಟ್‌ನಲ್ಲಿ ಲೈವ್ ಟ್ರ್ಯಾಕ್ ಮಾಡಿ</a></div>` : ''}
+              <div style="text-align:right; margin-top:4px;"><a href="#" onclick="setOrderDeliveryMode('${o.id}', '')" style="color:#d32f2f; font-size:0.7rem;">ವಿಧಾನ ಬದಲಾಯಿಸಿ</a></div>
+            </div>
+          `;
+        }
+
         let actionButtonsHtml = '';
         if (isFakeOrDuplicate && status !== 'CANCELLED' && status !== 'COMPLETED' && status !== 'DELIVERED') {
           actionButtonsHtml = `<div style="margin-top:8px;"><button class="btn btn-danger" style="width:100%; padding:10px; font-size:0.85rem;" onclick="updateOrderStatus('${o.id}', 'CANCELLED')">❌ ನಕಲಿ ಪಾವತಿ - ಆರ್ಡರ್ ಕ್ಯಾನ್ಸಲ್ ಮಾಡಿ</button></div>`;
@@ -438,14 +469,42 @@
             <b>ಆರ್ಡರ್ ID: ${o.orderId || o.id}</b><br>
             <b>ವಸ್ತು:</b> ${o.productName} - ₹${o.totalPrice}<br>
             <b>ಅಂಗಡಿ:</b> ${o.shopName || 'Store'} | <b>ಗ್ರಾಹಕರು:</b> ${o.customer?.name} (${o.customer?.phone})<br>
+            <b>ವಿಳಾಸ:</b> ${o.customer?.village || 'N/A'}<br>
             <b>ಪಾವತಿ ವಿಧಾನ:</b> ${o.paymentMode || 'UPI'} | <b>UTR ID:</b> ${upiTxn || 'ನಮೂದಿಸಿಲ್ಲ'}<br>
             <b>ಆರ್ಡರ್ ಸ್ಥಿತಿ:</b> ${status}
             ${verificationBadge}
             ${proofHtml}
+            ${shippingActionHtml}
             ${actionButtonsHtml}
           </div>
         `;
       }).join('');
+    }
+
+    async function setOrderDeliveryMode(orderId, mode) {
+      try {
+        await window.updateDoc(window.doc(window.db, "orders", orderId), {
+          deliveryMode: mode,
+          updatedAt: window.serverTimestamp()
+        });
+        alert(mode === 'DTDC' ? "📦 DTDC ಪಿಕಪ್ ಮೋಡ್ ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ. ಈಗ AWB ನಂಬರ್ ನಮೂದಿಸಿ." : (mode === 'LOCAL' ? "🛵 ಲೋಕಲ್ ಡೆಲಿವರಿ ಮೋಡ್ ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ." : "ಮೋಡ್ ಮರುಹೊಂದಿಸಲಾಗಿದೆ."));
+      } catch(e) { alert("Error: " + e.message); }
+    }
+
+    async function saveDtdcAwb(orderId) {
+      let awbInput = document.getElementById(`awb_${orderId}`).value.trim();
+      if (!awbInput) {
+        alert("ದಯವಿಟ್ಟು ಸರಿಯಾದ DTDC AWB ಟ್ರ್ಯಾಕಿಂಗ್ ನಂಬರ್ ನಮೂದಿಸಿ.");
+        return;
+      }
+      try {
+        await window.updateDoc(window.doc(window.db, "orders", orderId), {
+          dtdcAwbNumber: awbInput,
+          status: 'SHIPPED_DTDC',
+          updatedAt: window.serverTimestamp()
+        });
+        alert("✅ DTDC AWB ನಂಬರ್ ಯಶಸ್ವಿಯಾಗಿ ಸೇವ್ ಆಯಿತು!");
+      } catch(e) { alert("Error: " + e.message); }
     }
 
     async function updateOrderStatus(orderDocId, newStatus) {
@@ -461,6 +520,7 @@
       }
     }
 
+    // --- TAB 1: SHOP OWNERS & COMMISSION ---
     function renderShops(list) {
       const container = document.getElementById('shopsListContainer');
       if (list.length === 0) {
@@ -544,9 +604,7 @@
           commissionPercent: percent
         });
         alert("✅ ಕಮಿಷನ್ ಶೇಕಡವಾರು ಯಶಸ್ವಿಯಾಗಿ ಸೇವ್ ಮಾಡಲಾಗಿದೆ!");
-      } catch(e) {
-        alert("ದೋಷ: " + e.message);
-      }
+      } catch(e) { alert("ದೋಷ: " + e.message); }
     }
 
     async function toggleShopMembership(docId, newStatus) {
