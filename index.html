@@ -105,7 +105,6 @@
     .btn-primary { background: var(--secondary); }
     .btn-warning { background: #f57c00; }
 
-    /* 1200x600 Banner aspect ratio container */
     .banner-preview-box {
       width: 100%;
       aspect-ratio: 1200 / 600;
@@ -126,7 +125,7 @@
 </head>
 <body>
 
-  <!-- Splash Screen -->
+  <!-- Splash Screen (Fixed to 2 seconds auto-hide) -->
   <div id="splashScreen">
     <div class="splash-logo-box">
       <img src="logo.png" alt="Logo" onerror="this.src='https://via.placeholder.com/160/1e88e5/ffffff?text=MASTER'">
@@ -185,7 +184,7 @@
 
     <input type="text" id="masterSearch" class="search-input" placeholder="🔍 ಹೆಸರು, ಐಡಿ ಅಥವಾ ಆರ್ಡರ್ ನಂಬರ್ ಬಳಸಿ ಹುಡುಕಿ..." oninput="filterMasterData()">
 
-    <!-- TAB 0: LIVE DUAL ORDERS (Confirm button removed) -->
+    <!-- TAB 0: LIVE DUAL ORDERS -->
     <div id="ordersTab">
       <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">📦 ಗ್ರಾಹಕರ ಲೈವ್ ಆರ್ಡರ್‌ಗಳು & ಆಟೋಮ್ಯಾಟಿಕ್ ನಕಲಿ/ಒರಿಜಿನಲ್ ಪಾವತಿ ಪರಿಶೀಲನೆ</h3>
       <div id="ordersListContainer"></div>
@@ -216,7 +215,7 @@
       <div id="withdrawListContainer"></div>
     </div>
 
-    <!-- TAB 4: DELIVERY BOYS (Updated with QR & Payment Options like Shop Owners) -->
+    <!-- TAB 4: DELIVERY BOYS -->
     <div id="deliveryTab" style="display:none;">
       <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🛵 ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ಪಟ್ಟಿ & ಪೇಮೆಂಟ್</h3>
       <div id="deliveryListContainer"></div>
@@ -277,10 +276,15 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      // Exactly 2 seconds (2000 milliseconds) Splash Screen Timer
       setTimeout(() => {
         const splash = document.getElementById('splashScreen');
-        splash.style.opacity = '0';
-        setTimeout(() => { splash.style.display = 'none'; }, 600);
+        if (splash) {
+          splash.style.opacity = '0';
+          setTimeout(() => { 
+            splash.style.display = 'none'; 
+          }, 600);
+        }
       }, 2000);
 
       checkInstallStatus();
@@ -382,7 +386,6 @@
       processCustomers();
     }
 
-    // --- TAB 0: LIVE ORDERS (Confirm Button Completely Removed as requested) ---
     function renderOrders(list) {
       const container = document.getElementById('ordersListContainer');
       if (list.length === 0) {
@@ -425,7 +428,6 @@
           </div>
         ` : '';
 
-        // Confirm button removed as requested. Only Cancel button for fake payments remains.
         let actionButtonsHtml = '';
         if (isFakeOrDuplicate && status !== 'CANCELLED' && status !== 'COMPLETED' && status !== 'DELIVERED') {
           actionButtonsHtml = `<div style="margin-top:8px;"><button class="btn btn-danger" style="width:100%; padding:10px; font-size:0.85rem;" onclick="updateOrderStatus('${o.id}', 'CANCELLED')">❌ ನಕಲಿ ಪಾವತಿ - ಆರ್ಡರ್ ಕ್ಯಾನ್ಸಲ್ ಮಾಡಿ</button></div>`;
@@ -459,7 +461,6 @@
       }
     }
 
-    // --- TAB 1: SHOP OWNERS & COMMISSION SAVING & ORIGINAL QR CHECK ---
     function renderShops(list) {
       const container = document.getElementById('shopsListContainer');
       if (list.length === 0) {
@@ -557,7 +558,6 @@
       } catch(e) { alert("Error: " + e.message); }
     }
 
-    // --- TAB 2: ADVERTISEMENT BANNERS (1200x600) ---
     async function uploadBannerImage() {
       const urlInput = document.getElementById('bannerUrlInput').value.trim();
       const fileInput = document.getElementById('bannerFileInput').files[0];
@@ -675,7 +675,6 @@
       });
     }
 
-    // --- TAB 4: DELIVERY BOYS (Updated with QR & Payment Options matching Shop Owners) ---
     function renderDeliveryBoys(list) {
       const container = document.getElementById('deliveryListContainer');
       if (list.length === 0) {
@@ -684,7 +683,7 @@
       }
       container.innerHTML = list.map(db => {
         let dbOrders = allOrders.filter(o => o.deliveryBoyId === String(db.id) && (o.status === 'DELIVERED' || o.status === 'STEP_4' || o.status === 'RETURN_COMPLETED'));
-        let totalEarnings = dbOrders.length * 100; // Rs. 100 per delivery
+        let totalEarnings = dbOrders.length * 100;
 
         let qrBtnHtml = '';
         if (db.qrPhoto && db.qrPhoto.length > 50) {
@@ -793,7 +792,7 @@
       renderOrders(allOrders.filter(o => (o.orderId && o.orderId.toLowerCase().includes(q)) || (o.productName && o.productName.toLowerCase().includes(q)) || (o.customer && o.customer.phone.includes(q))));
       renderShops(allShops.filter(s => s.name.toLowerCase().includes(q) || s.id.includes(q) || s.shopName.toLowerCase().includes(q)));
       renderDeliveryBoys(allDeliveryBoys.filter(db => db.name.toLowerCase().includes(q) || db.id.includes(q)));
-      renderCustomers(allCustomers.filter(c => (c.name && c.name.toLowerCase().includes(q)) || c.phone.includes(q))));
+      renderCustomers(allCustomers.filter(c => (c.name && c.name.toLowerCase().includes(q)) || c.phone.includes(q)));
     }
   </script>
 </body>
