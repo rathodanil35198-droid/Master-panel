@@ -103,8 +103,22 @@
     .btn-danger { background: var(--danger); }
     .btn-success { background: var(--success); }
     .btn-primary { background: var(--secondary); }
+    .btn-warning { background: #f57c00; }
 
-    .banner-preview-img { width: 100%; height: auto; max-height: 250px; object-fit: contain; background: #fff; border-radius: 6px; margin-bottom: 6px; border: 1px solid #ccc; display: block; }
+    /* 1200x600 Banner aspect ratio container */
+    .banner-preview-box {
+      width: 100%;
+      aspect-ratio: 1200 / 600;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .banner-preview-img { width: 100%; height: 100%; object-fit: cover; display: block; }
     
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 10000; padding: 15px; }
     .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 400px; width: 100%; text-align: center; max-height: 90vh; overflow-y: auto; }
@@ -183,11 +197,11 @@
       <div id="shopsListContainer"></div>
     </div>
 
-    <!-- TAB 2: ADVERTISEMENT BANNERS -->
+    <!-- TAB 2: ADVERTISEMENT BANNERS (1200x600 aspect ratio) -->
     <div id="bannersTab" style="display:none;">
-      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">📢 ಮೇಲ್ಭಾಗದ ಜಾಹೀರಾತು ಬ್ಯಾನರ್‌ಗಳು</h3>
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">📢 ಮೇಲ್ಭಾಗದ ಜಾಹೀರಾತು ಬ್ಯಾನರ್‌ಗಳು (1200x600 ಅಳತೆ)</h3>
       <div class="card-box" style="background:#e8f4fd;">
-        <b>ಹೊಸ ಜಾಹೀರಾತು ಫೋಟೋ ಸೇರಿಸಿ:</b>
+        <b>ಹೊಸ ಜಾಹೀರಾತು ಫೋಟೋ ಸೇರಿಸಿ (1200x600 ಸೂಕ್ತ ಅಳತೆ):</b>
         <input type="text" id="bannerUrlInput" placeholder="ಇಮೇಜ್ URL ಹಾಕಿ (http://...)" style="width:100%; padding:8px; margin:6px 0; border:1px solid #ccc; border-radius:4px;">
         <div style="text-align:center; margin:4px 0;">ಅಥವಾ</div>
         <input type="file" id="bannerFileInput" accept="image/*" style="width:100%; margin-bottom:8px;">
@@ -376,7 +390,6 @@
         return;
       }
 
-      // Check Duplicates across UTR and Payment Proof Photos
       let utrCounts = {};
       let proofCounts = {};
       list.forEach(o => {
@@ -401,38 +414,23 @@
         let isDuplicateProof = (proofPhoto && proofCounts[proofPhoto] > 1);
         let isFakeOrDuplicate = isDuplicateUtr || isDuplicateProof;
 
-        let verificationBadge = '';
-        if (isFakeOrDuplicate) {
-          verificationBadge = `<div style="background:#ffebee; color:#d32f2f; border:1px solid #ffcdd2; padding:6px; border-radius:4px; font-weight:bold; margin-top:6px;">⚠️ ಎಚ್ಚರಿಕೆ: ಇದು ನಕಲಿ / ಹಳೆ ಸ್ಕ್ರೀನ್‌ಶಾಟ್ ಅಥವಾ ಡ್ಯೂಪ್ಲಿಕೇಟ್ UTR!</div>`;
-        } else {
-          verificationBadge = `<div style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; padding:6px; border-radius:4px; font-weight:bold; margin-top:6px;">✔ ಒರಿಜಿನಲ್ ಹೊಸ ಪಾವತಿ (ಪರಿಶೀಲಿಸಲಾಗಿದೆ)</div>`;
-        }
+        let verificationBadge = isFakeOrDuplicate ? 
+          `<div style="background:#ffebee; color:#d32f2f; border:1px solid #ffcdd2; padding:6px; border-radius:4px; font-weight:bold; margin-top:6px;">⚠️ ಎಚ್ಚರಿಕೆ: ಇದು ನಕಲಿ / ಹಳೆ ಸ್ಕ್ರೀನ್‌ಶಾಟ್ ಅಥವಾ ಡ್ಯೂಪ್ಲಿಕೇಟ್ UTR!</div>` :
+          `<div style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; padding:6px; border-radius:4px; font-weight:bold; margin-top:6px;">✔ ಒರಿಜಿನಲ್ ಹೊಸ ಪಾವತಿ (ಪರಿಶೀಲಿಸಲಾಗಿದೆ)</div>`;
 
-        let proofHtml = '';
-        if (proofPhoto) {
-          proofHtml = `
-            <div style="margin-top:6px; text-align:center;">
-              <img src="${proofPhoto}" style="width:100px; height:100px; object-fit:cover; border-radius:6px; border:2px solid #ccc; cursor:pointer;" onclick="openImageModal('${proofPhoto}', 'ಪಾವತಿ ಸ್ಕ್ರೀನ್‌ಶಾಟ್ (Zoom)')" title="ಫೋಟೋ ದೊಡ್ಡದಾಗಿ ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ">
-              <div style="font-size:0.7rem; color:#666;">ಫೋಟೋ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ ಜೂಮ್ ಮಾಡಿ</div>
-            </div>
-          `;
-        }
+        let proofHtml = proofPhoto ? `
+          <div style="margin-top:6px; text-align:center;">
+            <img src="${proofPhoto}" style="width:100px; height:100px; object-fit:cover; border-radius:6px; border:2px solid #ccc; cursor:pointer;" onclick="openImageModal('${proofPhoto}', 'ಪಾವತಿ ಸ್ಕ್ರೀನ್‌ಶಾಟ್ (Zoom)')" title="ಫೋಟೋ ದೊಡ್ಡದಾಗಿ ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ">
+            <div style="font-size:0.7rem; color:#666;">ಫೋಟೋ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ ಜೂಮ್ ಮಾಡಿ</div>
+          </div>
+        ` : '';
 
-        // Conditional Buttons: If fake/duplicate -> Show ONLY Cancel button. If original -> Show ONLY Confirm button.
         let actionButtonsHtml = '';
         if (status !== 'CANCELLED' && status !== 'COMPLETED' && status !== 'DELIVERED') {
           if (isFakeOrDuplicate) {
-            actionButtonsHtml = `
-              <div style="margin-top:8px;">
-                <button class="btn btn-danger" style="width:100%; padding:10px; font-size:0.85rem;" onclick="updateOrderStatus('${o.id}', 'CANCELLED')">❌ ನಕಲಿ ಪಾವತಿ - ಆರ್ಡರ್ ಕ್ಯಾನ್ಸಲ್ ಮಾಡಿ</button>
-              </div>
-            `;
+            actionButtonsHtml = `<div style="margin-top:8px;"><button class="btn btn-danger" style="width:100%; padding:10px; font-size:0.85rem;" onclick="updateOrderStatus('${o.id}', 'CANCELLED')">❌ ನಕಲಿ ಪಾವತಿ - ಆರ್ಡರ್ ಕ್ಯಾನ್ಸಲ್ ಮಾಡಿ</button></div>`;
           } else {
-            actionButtonsHtml = `
-              <div style="margin-top:8px;">
-                <button class="btn btn-success" style="width:100%; padding:10px; font-size:0.85rem;" onclick="updateOrderStatus('${o.id}', 'CONFIRMED')">✅ ಒರಿಜಿನಲ್ ಪಾವತಿ - ಆರ್ಡರ್ ಕನ್ಫರ್ಮ್ ಮಾಡಿ</button>
-              </div>
-            `;
+            actionButtonsHtml = `<div style="margin-top:8px;"><button class="btn btn-success" style="width:100%; padding:10px; font-size:0.85rem;" onclick="updateOrderStatus('${o.id}', 'CONFIRMED')">✅ ಒರಿಜಿನಲ್ ಪಾವತಿ - ಆರ್ಡರ್ ಕನ್ಫರ್ಮ್ ಮಾಡಿ</button></div>`;
           }
         }
 
@@ -443,7 +441,6 @@
             <b>ಅಂಗಡಿ:</b> ${o.shopName || 'Store'} | <b>ಗ್ರಾಹಕರು:</b> ${o.customer?.name} (${o.customer?.phone})<br>
             <b>ಪಾವತಿ ವಿಧಾನ:</b> ${o.paymentMode || 'UPI'} | <b>UTR ID:</b> ${upiTxn || 'ನಮೂದಿಸಿಲ್ಲ'}<br>
             <b>ಆರ್ಡರ್ ಸ್ಥಿತಿ:</b> ${status}
-            
             ${verificationBadge}
             ${proofHtml}
             ${actionButtonsHtml}
@@ -465,6 +462,105 @@
       }
     }
 
+    // --- TAB 1: SHOP OWNERS & COMMISSION SAVING & ORIGINAL QR CHECK ---
+    function renderShops(list) {
+      const container = document.getElementById('shopsListContainer');
+      if (list.length === 0) {
+        container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಅಂಗಡಿ ಮಾಲೀಕರಿಲ್ಲ.</p>';
+        return;
+      }
+
+      container.innerHTML = list.map(s => {
+        let commRate = s.commissionPercent !== undefined ? Number(s.commissionPercent) : 15; // default 15%
+        let shopOrders = allOrders.filter(o => o.shopId === String(s.id) && (o.status === 'DELIVERED' || o.status === 'STEP_4' || o.status === 'RETURN_COMPLETED'));
+        let totalSales = shopOrders.reduce((acc, curr) => acc + Number(curr.basePrice || curr.itemPrice || curr.totalPrice || 0), 0);
+        
+        let returnOrders = allOrders.filter(o => o.shopId === String(s.id) && (o.status === 'RETURNED' || o.isReturned || o.status === 'RETURN_COMPLETED' || o.isReturnRequested));
+        let totalReturned = returnOrders.reduce((acc, curr) => acc + Number(curr.basePrice || curr.itemPrice || curr.totalPrice || 0), 0);
+
+        let effectiveSales = Math.max(0, totalSales - totalReturned);
+        let commissionCutAmount = Math.round(effectiveSales * (commRate / 100));
+        let netPayable = Math.max(0, effectiveSales - commissionCutAmount);
+
+        let qrBtnHtml = '';
+        if (s.qrPhoto && s.qrPhoto.length > 50) {
+          qrBtnHtml = `<button class="btn btn-success" style="flex:1;" onclick="openImageModal('${s.qrPhoto}', 'ಅಂಗಡಿ ಮಾಲೀಕರ ಒರಿಜಿನಲ್ ಕ್ಯೂಆರ್ ಕೋಡ್ - ${s.shopName}')">📷 ಕ್ಯೂಆರ್ ಕೋಡ್ ನೋಡಿ</button>`;
+        } else {
+          qrBtnHtml = `<span style="background:#ffebee; color:#d32f2f; padding:6px; border-radius:4px; font-size:0.75rem; font-weight:bold; flex:1; text-align:center;">❌ ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>`;
+        }
+
+        let isPaid = s.isPaid === true;
+
+        return `
+          <div class="card-box" style="border-left:4px solid var(--secondary);">
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">
+              <img src="${s.photo || 'https://via.placeholder.com/60'}" style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:1px solid #ccc;">
+              <div>
+                <b>${s.shopName} (${s.shopType || 'ಇತರ'})</b><br>
+                ಮಾಲೀಕರು: ${s.name} | ಫೋನ್: ${s.phone}<br>
+                ID: <b>${s.id}</b> | ಸ್ಥಳ: ${s.taluk}, ${s.district}
+              </div>
+            </div>
+
+            <div style="background:#e8f4fd; padding:8px; border-radius:6px; font-size:0.8rem; margin-bottom:8px;">
+              <b>📊 ಲೆಕ್ಕಾಚಾರ & ಕಮಿಷನ್ ಸೆಟ್ಟಿಂಗ್:</b><br>
+              • ಒಟ್ಟು ಮಾರಾಟ: ₹${totalSales} (ರಿಟರ್ನ್ ಕಡಿತ: -₹${totalReturned})<br>
+              
+              <div style="display:flex; align-items:center; gap:6px; margin:6px 0;">
+                <label style="font-weight:bold; color:#1565c0;">ಕಮಿಷನ್ ಕಡಿತ (%):</label>
+                <input type="number" id="comm_input_${s.docId}" value="${commRate}" style="width:70px; padding:4px; text-align:center; font-weight:bold; border:1px solid #1565c0; border-radius:4px;" min="0" max="100">
+                <button class="btn btn-primary" style="padding:4px 8px; font-size:0.75rem;" onclick="saveShopCommission('${s.docId}')">💾 ಸೇವ್</button>
+              </div>
+
+              • ಕಮಿಷನ್ ಕಟ್ (${commRate}%): <span style="color:#d32f2f; font-weight:bold;">-₹${commissionCutAmount}</span> | <b>ನೀಡಬೇಕಾದ ಶುದ್ಧ ಮೊತ್ತ: ₹${netPayable}</b>
+            </div>
+
+            <div style="display:flex; gap:6px; margin-bottom:8px;">
+              <button class="btn btn-warning" style="flex:1;" onclick="openImageModal('${s.qrPhoto || ''}', 'ಅಂಗಡಿ ಕ್ಯೂಆರ್ ಕೋಡ್')">💳 ಪೇಮೆಂಟ್ ಮಾಡಿ (₹${netPayable})</button>
+              ${qrBtnHtml}
+            </div>
+
+            <div style="display:flex; gap:6px; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.75rem; font-weight:bold; color:${isPaid ? 'var(--success)' : '#d32f2f'};">
+                ${isPaid ? '✔ ಮೆಂಬರ್‌ಶಿಪ್ ಸಕ್ಸಸ್' : '❌ ಮೆಂಬರ್‌ಶಿಪ್ ಪೆಂಡಿಂಗ್'}
+              </span>
+              <button class="btn ${isPaid ? 'btn-danger' : 'btn-success'}" style="padding:4px 8px;" onclick="toggleShopMembership('${s.docId}', ${!isPaid})">
+                ${isPaid ? 'ಪೆಂಡಿಂಗ್‌ಗೆ ಬದಲಾಯಿಸಿ' : 'ಮೆಂಬರ್‌ಶಿಪ್ ಒಪ್ಪಿಗೆ (Approve)'}
+              </button>
+              <button class="btn btn-danger" onclick="deleteRecord('shop_owners', '${s.docId}', 'ಅಂಗಡಿ')">ಸಂಪೂರ್ಣ ಡಿಲೀಟ್</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function saveShopCommission(docId) {
+      let val = document.getElementById(`comm_input_${docId}`).value;
+      let percent = Number(val);
+      if (isNaN(percent) || percent < 0 || percent > 100) {
+        alert("ದಯವಿಟ್ಟು 0 ರಿಂದ 100 ರ ನಡುವೆ ಸರಿಯಾದ ಪರ್ಸೆಂಟೇಜ್ ನಮೂದಿಸಿ.");
+        return;
+      }
+      try {
+        await window.updateDoc(window.doc(window.db, "shop_owners", docId), {
+          commissionPercent: percent
+        });
+        alert("✅ ಕಮಿಷನ್ ಶೇಕಡವಾರು ಯಶಸ್ವಿಯಾಗಿ ಸೇವ್ ಮಾಡಲಾಗಿದೆ!");
+      } catch(e) {
+        alert("ದೋಷ: " + e.message);
+      }
+    }
+
+    async function toggleShopMembership(docId, newStatus) {
+      try {
+        await window.updateDoc(window.doc(window.db, "shop_owners", docId), {
+          isPaid: newStatus
+        });
+        alert("✅ ಅಂಗಡಿ ಮೆಂಬರ್‌ಶಿಪ್ ಸ್ಥಿತಿ ಬದಲಾಯಿಸಲಾಗಿದೆ!");
+      } catch(e) { alert("Error: " + e.message); }
+    }
+
+    // --- TAB 2: ADVERTISEMENT BANNERS (1200x600) ---
     async function uploadBannerImage() {
       const urlInput = document.getElementById('bannerUrlInput').value.trim();
       const fileInput = document.getElementById('bannerFileInput').files[0];
@@ -491,7 +587,7 @@
         });
         document.getElementById('bannerUrlInput').value = '';
         document.getElementById('bannerFileInput').value = '';
-        alert("🟢 ಜಾಹೀರಾತು ಅಪ್‌ಲೋಡ್ ಆಗಿದೆ!");
+        alert("🟢 ಜಾಹೀರಾತು (1200x600 ಅಳತೆಯಲ್ಲಿ) ಯಶಸ್ವಿಯಾಗಿ ಅಪ್‌ಲೋಡ್ ಆಗಿದೆ!");
       } catch(e) { alert("Error: " + e.message); }
     }
 
@@ -503,7 +599,10 @@
       }
       container.innerHTML = list.map(b => `
         <div class="card-box">
-          <img src="${b.imageUrl}" class="banner-preview-img" onclick="openImageModal('${b.imageUrl}', 'ಜಾಹೀರಾತು ಬ್ಯಾನರ್')" style="cursor:pointer;">
+          <div class="banner-preview-box" onclick="openImageModal('${b.imageUrl}', 'ಜಾಹೀರಾತು ಬ್ಯಾನರ್ (1200x600)')" title="ದೊಡ್ಡದಾಗಿ ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ">
+            <img src="${b.imageUrl}" class="banner-preview-img">
+          </div>
+          <div style="font-size:0.75rem; color:#666; margin-top:2px; text-align:center;">💡 ಗ್ರಾಹಕರ ಆಪ್‌ನಲ್ಲಿ ಪೂರ್ಣವಾಗಿ ಕಾಣಲು 1200x600 ಅಳತೆಯ ಬ್ಯಾನರ್</div>
           <div style="text-align:right; margin-top:6px;">
             <button class="btn btn-danger" onclick="deleteRecord('master_banners', '${b.docId}', 'ಬ್ಯಾನರ್')">ಡಿಲೀಟ್ ಮಾಡಿ</button>
           </div>
@@ -579,22 +678,30 @@
       });
     }
 
-    function renderShops(list) {
-      const container = document.getElementById('shopsListContainer');
-      if (list.length === 0) {
-        container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಅಂಗಡಿ ಮಾಲೀಕರಿಲ್ಲ.</p>';
-        return;
-      }
-      container.innerHTML = list.map(s => `<div class="card-box"><b>${s.shopName}</b> (${s.name}) - ID: ${s.id}</div>`).join('');
-    }
-
     function renderDeliveryBoys(list) {
       const container = document.getElementById('deliveryListContainer');
       if (list.length === 0) {
         container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ಇಲ್ಲ.</p>';
         return;
       }
-      container.innerHTML = list.map(db => `<div class="card-box"><b>${db.name}</b> - ID: ${db.id}</div>`).join('');
+      container.innerHTML = list.map(db => `
+        <div class="card-box" style="border-left: 4px solid var(--primary);">
+          <div style="display:flex; gap:10px; align-items:center; margin-bottom:6px;">
+            <img src="${db.photo || 'https://via.placeholder.com/60'}" style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:1px solid #ccc;">
+            <div>
+              <b>${db.name} (ತಂದೆ: ${db.fatherName || ''})</b><br>
+              ಫೋನ್: ${db.phone} | ID: <b>${db.id}</b><br>
+              ಊರು: ${db.village || ''}, ${db.taluk || ''}
+            </div>
+          </div>
+          <div style="display:flex; gap:6px; margin-top:8px;">
+            ${db.qrPhoto ? `<button class="btn btn-success" style="flex:1;" onclick="openImageModal('${db.qrPhoto}', 'ಡೆಲಿವರಿ ಬಾಯ್ ಕ್ಯೂಆರ್ ಕೋಡ್ - ${db.name}')">📱 ಡೆಲಿವರಿ ಬಾಯ್ QR ಕೋಡ್</button>` : '<span style="color:red; font-size:0.75rem;">QR ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>'}
+          </div>
+          <div style="text-align:right; margin-top:6px;">
+            <button class="btn btn-danger" onclick="deleteRecord('delivery_boys', '${db.docId}', 'ಡೆಲಿವರಿ ಬಾಯ್')">ಸಂಪೂರ್ಣ ಡಿಲೀಟ್</button>
+          </div>
+        </div>
+      `).join('');
     }
 
     function renderCustomers(list) {
@@ -614,7 +721,7 @@
 
     function renderReturnsTab(orders) {
       const container = document.getElementById('returnsListContainer');
-      let returnOrders = orders.filter(o => o.isReturned || o.status === 'RETURNED' || o.status === 'RETURN_REQUESTED');
+      let returnOrders = orders.filter(o => o.isReturned || o.status === 'RETURNED' || o.status === 'RETURN_REQUESTED' || o.isReturnRequested);
       if (returnOrders.length === 0) {
         container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ರಿಟರ್ನ್ ಆರ್ಡರ್‌ಗಳಿಲ್ಲ.</p>';
         return;
@@ -623,7 +730,6 @@
         let custUpi = o.customerUpiId || '';
         let refundAmt = o.totalPrice || 0;
         let qrPhoto = o.customerQrPhoto || '';
-
         let upiPayLink = custUpi ? `upi://pay?pa=${custUpi}&am=${refundAmt}&cu=INR&tn=Refund_Order_${o.orderId || o.id}` : '#';
 
         return `
@@ -642,6 +748,10 @@
     }
 
     function openImageModal(imgSrc, title) {
+      if (!imgSrc || imgSrc === 'undefined' || imgSrc.length < 20) {
+        alert("ಯಾವುದೇ ಒರಿಜಿನಲ್ ಕ್ಯೂಆರ್ ಕೋಡ್ ಲಭ್ಯವಿಲ್ಲ.");
+        return;
+      }
       document.getElementById('modalTitle').innerText = title;
       document.getElementById('modalImgSrc').src = imgSrc;
       document.getElementById('downloadLink').href = imgSrc;
