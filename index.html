@@ -185,7 +185,7 @@
 
     <input type="text" id="masterSearch" class="search-input" placeholder="🔍 ಹೆಸರು, ಐಡಿ ಅಥವಾ ಆರ್ಡರ್ ನಂಬರ್ ಬಳಸಿ ಹುಡುಕಿ..." oninput="filterMasterData()">
 
-    <!-- TAB 0: LIVE DUAL ORDERS + SMART FAKE/REAL CHECKER -->
+    <!-- TAB 0: LIVE DUAL ORDERS (Confirm button removed) -->
     <div id="ordersTab">
       <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">📦 ಗ್ರಾಹಕರ ಲೈವ್ ಆರ್ಡರ್‌ಗಳು & ಆಟೋಮ್ಯಾಟಿಕ್ ನಕಲಿ/ಒರಿಜಿನಲ್ ಪಾವತಿ ಪರಿಶೀಲನೆ</h3>
       <div id="ordersListContainer"></div>
@@ -216,7 +216,7 @@
       <div id="withdrawListContainer"></div>
     </div>
 
-    <!-- TAB 4: DELIVERY BOYS -->
+    <!-- TAB 4: DELIVERY BOYS (Updated with QR & Payment Options like Shop Owners) -->
     <div id="deliveryTab" style="display:none;">
       <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🛵 ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ಪಟ್ಟಿ & ಪೇಮೆಂಟ್</h3>
       <div id="deliveryListContainer"></div>
@@ -382,7 +382,7 @@
       processCustomers();
     }
 
-    // --- TAB 0: LIVE ORDERS + AUTOMATIC UTR / SCREENSHOT DUPLICATE CHECKER ---
+    // --- TAB 0: LIVE ORDERS (Confirm Button Completely Removed as requested) ---
     function renderOrders(list) {
       const container = document.getElementById('ordersListContainer');
       if (list.length === 0) {
@@ -425,13 +425,10 @@
           </div>
         ` : '';
 
+        // Confirm button removed as requested. Only Cancel button for fake payments remains.
         let actionButtonsHtml = '';
-        if (status !== 'CANCELLED' && status !== 'COMPLETED' && status !== 'DELIVERED') {
-          if (isFakeOrDuplicate) {
-            actionButtonsHtml = `<div style="margin-top:8px;"><button class="btn btn-danger" style="width:100%; padding:10px; font-size:0.85rem;" onclick="updateOrderStatus('${o.id}', 'CANCELLED')">❌ ನಕಲಿ ಪಾವತಿ - ಆರ್ಡರ್ ಕ್ಯಾನ್ಸಲ್ ಮಾಡಿ</button></div>`;
-          } else {
-            actionButtonsHtml = `<div style="margin-top:8px;"><button class="btn btn-success" style="width:100%; padding:10px; font-size:0.85rem;" onclick="updateOrderStatus('${o.id}', 'CONFIRMED')">✅ ಒರಿಜಿನಲ್ ಪಾವತಿ - ಆರ್ಡರ್ ಕನ್ಫರ್ಮ್ ಮಾಡಿ</button></div>`;
-          }
+        if (isFakeOrDuplicate && status !== 'CANCELLED' && status !== 'COMPLETED' && status !== 'DELIVERED') {
+          actionButtonsHtml = `<div style="margin-top:8px;"><button class="btn btn-danger" style="width:100%; padding:10px; font-size:0.85rem;" onclick="updateOrderStatus('${o.id}', 'CANCELLED')">❌ ನಕಲಿ ಪಾವತಿ - ಆರ್ಡರ್ ಕ್ಯಾನ್ಸಲ್ ಮಾಡಿ</button></div>`;
         }
 
         return `
@@ -471,7 +468,7 @@
       }
 
       container.innerHTML = list.map(s => {
-        let commRate = s.commissionPercent !== undefined ? Number(s.commissionPercent) : 15; // default 15%
+        let commRate = s.commissionPercent !== undefined ? Number(s.commissionPercent) : 15;
         let shopOrders = allOrders.filter(o => o.shopId === String(s.id) && (o.status === 'DELIVERED' || o.status === 'STEP_4' || o.status === 'RETURN_COMPLETED'));
         let totalSales = shopOrders.reduce((acc, curr) => acc + Number(curr.basePrice || curr.itemPrice || curr.totalPrice || 0), 0);
         
@@ -678,30 +675,51 @@
       });
     }
 
+    // --- TAB 4: DELIVERY BOYS (Updated with QR & Payment Options matching Shop Owners) ---
     function renderDeliveryBoys(list) {
       const container = document.getElementById('deliveryListContainer');
       if (list.length === 0) {
         container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ಇಲ್ಲ.</p>';
         return;
       }
-      container.innerHTML = list.map(db => `
-        <div class="card-box" style="border-left: 4px solid var(--primary);">
-          <div style="display:flex; gap:10px; align-items:center; margin-bottom:6px;">
-            <img src="${db.photo || 'https://via.placeholder.com/60'}" style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:1px solid #ccc;">
-            <div>
-              <b>${db.name} (ತಂದೆ: ${db.fatherName || ''})</b><br>
-              ಫೋನ್: ${db.phone} | ID: <b>${db.id}</b><br>
-              ಊರು: ${db.village || ''}, ${db.taluk || ''}
+      container.innerHTML = list.map(db => {
+        let dbOrders = allOrders.filter(o => o.deliveryBoyId === String(db.id) && (o.status === 'DELIVERED' || o.status === 'STEP_4' || o.status === 'RETURN_COMPLETED'));
+        let totalEarnings = dbOrders.length * 100; // Rs. 100 per delivery
+
+        let qrBtnHtml = '';
+        if (db.qrPhoto && db.qrPhoto.length > 50) {
+          qrBtnHtml = `<button class="btn btn-success" style="flex:1;" onclick="openImageModal('${db.qrPhoto}', 'ಡೆಲಿವರಿ ಬಾಯ್ ಕ್ಯೂಆರ್ ಕೋಡ್ - ${db.name}')">📷 ಕ್ಯೂಆರ್ ಕೋಡ್ ನೋಡಿ</button>`;
+        } else {
+          qrBtnHtml = `<span style="background:#ffebee; color:#d32f2f; padding:6px; border-radius:4px; font-size:0.75rem; font-weight:bold; flex:1; text-align:center;">❌ ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>`;
+        }
+
+        return `
+          <div class="card-box" style="border-left: 4px solid var(--primary);">
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom:6px;">
+              <img src="${db.photo || 'https://via.placeholder.com/60'}" style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:1px solid #ccc;">
+              <div>
+                <b>${db.name} (ತಂದೆ: ${db.fatherName || ''})</b><br>
+                ಫೋನ್: ${db.phone} | ID: <b>${db.id}</b><br>
+                ಊರು: ${db.village || ''}, ${db.taluk || ''}
+              </div>
+            </div>
+
+            <div style="background:#e8f4fd; padding:8px; border-radius:6px; font-size:0.8rem; margin-bottom:8px;">
+              <b>🛵 ಡೆಲಿವರಿ ಲೆಕ್ಕಾಚಾರ (ರೂ. 100 ಪ್ರತಿ ಡೆಲಿವರಿಗೆ):</b><br>
+              • ಒಟ್ಟು ಯಶಸ್ವಿ ಡೆಲಿವರಿಗಳು: ${dbOrders.length} | <b>ನೀಡಬೇಕಾದ ಮೊತ್ತ: ₹${totalEarnings}</b>
+            </div>
+
+            <div style="display:flex; gap:6px; margin-bottom:8px;">
+              <button class="btn btn-warning" style="flex:1;" onclick="openImageModal('${db.qrPhoto || ''}', 'ಡೆಲಿವರಿ ಬಾಯ್ ಕ್ಯೂಆರ್ ಕೋಡ್')">💳 ಪೇಮೆಂಟ್ ಮಾಡಿ (₹${totalEarnings})</button>
+              ${qrBtnHtml}
+            </div>
+
+            <div style="text-align:right;">
+              <button class="btn btn-danger" onclick="deleteRecord('delivery_boys', '${db.docId}', 'ಡೆಲಿವರಿ ಬಾಯ್')">ಸಂಪೂರ್ಣ ಡಿಲೀಟ್</button>
             </div>
           </div>
-          <div style="display:flex; gap:6px; margin-top:8px;">
-            ${db.qrPhoto ? `<button class="btn btn-success" style="flex:1;" onclick="openImageModal('${db.qrPhoto}', 'ಡೆಲಿವರಿ ಬಾಯ್ ಕ್ಯೂಆರ್ ಕೋಡ್ - ${db.name}')">📱 ಡೆಲಿವರಿ ಬಾಯ್ QR ಕೋಡ್</button>` : '<span style="color:red; font-size:0.75rem;">QR ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>'}
-          </div>
-          <div style="text-align:right; margin-top:6px;">
-            <button class="btn btn-danger" onclick="deleteRecord('delivery_boys', '${db.docId}', 'ಡೆಲಿವರಿ ಬಾಯ್')">ಸಂಪೂರ್ಣ ಡಿಲೀಟ್</button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function renderCustomers(list) {
@@ -775,7 +793,7 @@
       renderOrders(allOrders.filter(o => (o.orderId && o.orderId.toLowerCase().includes(q)) || (o.productName && o.productName.toLowerCase().includes(q)) || (o.customer && o.customer.phone.includes(q))));
       renderShops(allShops.filter(s => s.name.toLowerCase().includes(q) || s.id.includes(q) || s.shopName.toLowerCase().includes(q)));
       renderDeliveryBoys(allDeliveryBoys.filter(db => db.name.toLowerCase().includes(q) || db.id.includes(q)));
-      renderCustomers(allCustomers.filter(c => (c.name && c.name.toLowerCase().includes(q)) || c.phone.includes(q)));
+      renderCustomers(allCustomers.filter(c => (c.name && c.name.toLowerCase().includes(q)) || c.phone.includes(q))));
     }
   </script>
 </body>
