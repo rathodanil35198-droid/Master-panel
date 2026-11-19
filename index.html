@@ -105,10 +105,12 @@
     .btn-primary { background: var(--secondary); }
     .btn-warning { background: #f57c00; }
 
+    /* Full screen / non-cropped banner preview */
     .banner-preview-box {
       width: 100%;
-      aspect-ratio: 1200 / 600;
-      background: #fff;
+      min-height: 150px;
+      max-height: 320px;
+      background: #f5f5f5;
       border: 1px solid #ccc;
       border-radius: 6px;
       margin-bottom: 6px;
@@ -116,11 +118,12 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      cursor: pointer;
     }
-    .banner-preview-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .banner-preview-img { width: 100%; height: auto; max-height: 320px; object-fit: contain; display: block; background: #fff; }
     
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 10000; padding: 15px; }
-    .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 400px; width: 100%; text-align: center; max-height: 90vh; overflow-y: auto; }
+    .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 420px; width: 100%; text-align: center; max-height: 90vh; overflow-y: auto; }
   </style>
 </head>
 <body>
@@ -143,14 +146,15 @@
     </div>
   </div>
 
-  <!-- Image & Zoom Viewer Modal -->
+  <!-- Image & Zoom Viewer Modal (Full Screen View) -->
   <div id="imageModal" class="modal" onclick="closeImageModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
-      <h3 id="modalTitle">ಫೋಟೋ / ಕ್ಯೂಆರ್ ವೀಕ್ಷಣೆ (Zoom)</h3>
-      <div id="modalBodyContent">
-        <img id="modalImgSrc" src="" style="width:100%; max-height:70vh; object-fit:contain; background:#fff; margin:10px 0; border-radius:6px; cursor:zoom-in;" onclick="toggleZoom(this)">
+      <h3 id="modalTitle">ಫೋಟೋ / ಕ್ಯೂಆರ್ ವೀಕ್ಷಣೆ (Full View)</h3>
+      <div id="modalBodyContent" style="overflow:auto; max-height:70vh; background:#fafafa; border-radius:6px; margin:10px 0; padding:6px;">
+        <img id="modalImgSrc" src="" style="width:100%; height:auto; max-height:65vh; object-fit:contain; background:#fff; border-radius:6px; cursor:zoom-in; transition:transform 0.25s ease;" onclick="toggleZoom(this)">
       </div>
-      <div style="display:flex; gap:10px; margin-top:10px;">
+      <div style="font-size:0.75rem; color:#666; margin-bottom:6px;">ಫೋಟೋ ಪೂರ್ಣವಾಗಿ ಕಾಣುತ್ತದೆ — ಜೂಮ್ ಮಾಡಲು ಫೋಟೋ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ</div>
+      <div style="display:flex; gap:10px; margin-top:6px;">
         <a id="downloadLink" href="" download="document.jpg" class="btn btn-success" style="flex:1; text-decoration:none; text-align:center; padding:8px;">ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ</a>
         <button class="btn btn-danger" style="flex:1;" onclick="closeImageModal()">ಮುಚ್ಚಿ</button>
       </div>
@@ -187,6 +191,7 @@
     <!-- TAB 0: LIVE DUAL ORDERS WITH LOCAL vs DTDC SHIPPING OPTIONS -->
     <div id="ordersTab">
       <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">📦 ಗ್ರಾಹಕರ ಲೈವ್ ಆರ್ಡರ್‌ಗಳು & ಡೆಲಿವರಿ ಮೋಡ್ (Local vs DTDC)</h3>
+      <div id="masterDeliveryChargeSummary" style="background:#e8f5e9; border:1px solid #81c784; border-radius:8px; padding:8px; margin-bottom:10px; font-size:0.8rem;"></div>
       <div id="ordersListContainer"></div>
     </div>
 
@@ -217,7 +222,7 @@
 
     <!-- TAB 4: DELIVERY BOYS -->
     <div id="deliveryTab" style="display:none;">
-      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🛵 ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ಪಟ್ಟಿ & ಪೇಮೆಂಟ್</h3>
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🛵 ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ಪಟ್ಟಿ & ಚಾರ್ಜಸ್ ಸೆಟ್ಟಿಂಗ್ / ಪೇಮೆಂಟ್</h3>
       <div id="deliveryListContainer"></div>
     </div>
 
@@ -229,7 +234,7 @@
 
     <!-- TAB 6: RETURNS & URGENT ORDERS -->
     <div id="returnsTab" style="display:none;">
-      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🔄 ರಿಟರ್ನ್ ಆರ್ಡರ್ಸ್ & UPI ರೀಫಂಡ್ (Pay via UPI)</h3>
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:var(--secondary);">🔄 ರಿಟರ್ನ್ ಆರ್ಡರ್ಸ್, ರಿಟರ್ನ್ ಡೆಲಿವರಿ ಚಾರ್ಜ್ & UPI ರೀಫಂಡ್</h3>
       <div id="returnsListContainer"></div>
     </div>
   </div>
@@ -243,6 +248,7 @@
     let allBanners = [];
     let allWithdrawals = [];
     let deferredPrompt = null;
+    let defaultReturnDeliveryCharge = 50; // ರಿಟರ್ನ್ ಆದಾಗ ಕಡಿತವಾಗುವ ಡೆಲಿವರಿ ಚಾರ್ಜ್ (ರೂ. 50)
 
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -340,6 +346,32 @@
       } catch(e) { alert("Error: " + e.message); }
     }
 
+    // Helper: extract delivery charge saved on order without touching shop item amount
+    function getOrderDeliveryCharge(order) {
+      if (order.deliveryCharge !== undefined && order.deliveryCharge !== null && !isNaN(Number(order.deliveryCharge))) {
+        return Number(order.deliveryCharge);
+      }
+      const total = Number(order.totalPrice || 0);
+      const base = Number(order.basePrice || order.itemPrice || 0);
+      if (base > 0 && total > base) {
+        return total - base;
+      }
+      return 0;
+    }
+
+    // Helper: extract shop item price excluding delivery charge
+    function getOrderItemOnlyPrice(order) {
+      if (order.basePrice !== undefined && order.basePrice !== null && Number(order.basePrice) > 0) {
+        return Number(order.basePrice);
+      }
+      if (order.itemPrice !== undefined && order.itemPrice !== null && Number(order.itemPrice) > 0) {
+        return Number(order.itemPrice);
+      }
+      const total = Number(order.totalPrice || 0);
+      const delCharge = getOrderDeliveryCharge(order);
+      return Math.max(0, total - delCharge);
+    }
+
     function loadMasterData() {
       window.onSnapshot(window.collection(window.db, "master_banners"), (snap) => {
         allBanners = [];
@@ -386,6 +418,23 @@
     // --- TAB 0: LIVE ORDERS WITH LOCAL vs DTDC SHIPPING OPTIONS ---
     function renderOrders(list) {
       const container = document.getElementById('ordersListContainer');
+      const summaryBox = document.getElementById('masterDeliveryChargeSummary');
+
+      // Total delivery charges collected across orders (saved for Master / App)
+      let totalDeliveryChargesSaved = 0;
+      list.forEach(o => {
+        if (o.status !== 'CANCELLED') {
+          totalDeliveryChargesSaved += getOrderDeliveryCharge(o);
+        }
+      });
+
+      if (summaryBox) {
+        summaryBox.innerHTML = `
+          <b>💰 ಮಾಸ್ಟರ್ / ಆಪ್ ಡೆಲಿವರಿ ಚಾರ್ಜ್ ಸೇವ್ ಲೆಕ್ಕ:</b><br>
+          ಒಟ್ಟು ಡೆಲಿವರಿ ಚಾರ್ಜ್ ಮೊತ್ತ (ಅಂಗಡಿ ಮಾಲೀಕರ ಬಿಲ್‌ನಿಂದ ಪ್ರತ್ಯೇಕ): <span style="color:#1b5e20; font-weight:bold; font-size:0.95rem;">₹${totalDeliveryChargesSaved}</span>
+        `;
+      }
+
       if (list.length === 0) {
         container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಹೊಸ ಆರ್ಡರ್‌ಗಳಿಲ್ಲ.</p>';
         return;
@@ -411,6 +460,8 @@
         let proofPhoto = o.paymentProofPhoto || '';
         let deliveryMode = o.deliveryMode || ''; // 'LOCAL' or 'DTDC'
         let dtdcAwb = o.dtdcAwbNumber || '';
+        let itemOnlyPrice = getOrderItemOnlyPrice(o);
+        let orderDelCharge = getOrderDeliveryCharge(o);
         
         let cleanUtr = upiTxn.trim().toLowerCase();
         let isDuplicateUtr = (cleanUtr && cleanUtr !== 'ನಮೂದಿಸಿಲ್ಲ' && utrCounts[cleanUtr] > 1);
@@ -423,12 +474,11 @@
 
         let proofHtml = proofPhoto ? `
           <div style="margin-top:6px; text-align:center;">
-            <img src="${proofPhoto}" style="width:100px; height:100px; object-fit:cover; border-radius:6px; border:2px solid #ccc; cursor:pointer;" onclick="openImageModal('${proofPhoto}', 'ಪಾವತಿ ಸ್ಕ್ರೀನ್‌ಶಾಟ್ (Zoom)')" title="ಫೋಟೋ ದೊಡ್ಡದಾಗಿ ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ">
-            <div style="font-size:0.7rem; color:#666;">ಫೋಟೋ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ ಜೂಮ್ ಮಾಡಿ</div>
+            <img src="${proofPhoto}" style="max-width:100%; max-height:200px; object-fit:contain; border-radius:6px; border:2px solid #ccc; cursor:pointer; background:#fff;" onclick="openImageModal('${proofPhoto}', 'ಪಾವತಿ ಸ್ಕ್ರೀನ್‌ಶಾಟ್ (Full View)')" title="ಫೋಟೋ ಪೂರ್ಣವಾಗಿ ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ">
+            <div style="font-size:0.7rem; color:#666;">ಫೋಟೋ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ ಪೂರ್ಣವಾಗಿ ನೋಡಿ</div>
           </div>
         ` : '';
 
-        // Shipping mode selection controls when packed/ready
         let shippingActionHtml = `
           <div style="background:#f0f4f8; padding:8px; border-radius:6px; margin-top:8px; font-size:0.8rem;">
             <b>🚚 ಡೆಲಿವರಿ ವಿಧಾನ ಆಯ್ಕೆಮಾಡಿ:</b>
@@ -467,7 +517,7 @@
         return `
           <div class="card-box" style="border-left:4px solid ${isFakeOrDuplicate ? '#d32f2f' : 'var(--success)'};">
             <b>ಆರ್ಡರ್ ID: ${o.orderId || o.id}</b><br>
-            <b>ವಸ್ತು:</b> ${o.productName} - ₹${o.totalPrice}<br>
+            <b>ವಸ್ತು:</b> ${o.productName} - ಅಂಗಡಿ ಮೊತ್ತ: ₹${itemOnlyPrice} | <b>ಡೆಲಿವರಿ ಚಾರ್ಜ್ (ಸೇವ್): ₹${orderDelCharge}</b> (ಒಟ್ಟು: ₹${o.totalPrice || (itemOnlyPrice + orderDelCharge)})<br>
             <b>ಅಂಗಡಿ:</b> ${o.shopName || 'Store'} | <b>ಗ್ರಾಹಕರು:</b> ${o.customer?.name} (${o.customer?.phone})<br>
             <b>ವಿಳಾಸ:</b> ${o.customer?.village || 'N/A'}<br>
             <b>ಪಾವತಿ ವಿಧಾನ:</b> ${o.paymentMode || 'UPI'} | <b>UTR ID:</b> ${upiTxn || 'ನಮೂದಿಸಿಲ್ಲ'}<br>
@@ -520,7 +570,7 @@
       }
     }
 
-    // --- TAB 1: SHOP OWNERS & COMMISSION ---
+    // --- TAB 1: SHOP OWNERS & COMMISSION (DELIVERY CHARGE EXCLUDED FROM SHOP CALCULATION) ---
     function renderShops(list) {
       const container = document.getElementById('shopsListContainer');
       if (list.length === 0) {
@@ -531,10 +581,10 @@
       container.innerHTML = list.map(s => {
         let commRate = s.commissionPercent !== undefined ? Number(s.commissionPercent) : 15;
         let shopOrders = allOrders.filter(o => o.shopId === String(s.id) && (o.status === 'DELIVERED' || o.status === 'STEP_4' || o.status === 'RETURN_COMPLETED'));
-        let totalSales = shopOrders.reduce((acc, curr) => acc + Number(curr.basePrice || curr.itemPrice || curr.totalPrice || 0), 0);
+        let totalSales = shopOrders.reduce((acc, curr) => acc + getOrderItemOnlyPrice(curr), 0);
         
         let returnOrders = allOrders.filter(o => o.shopId === String(s.id) && (o.status === 'RETURNED' || o.isReturned || o.status === 'RETURN_COMPLETED' || o.isReturnRequested));
-        let totalReturned = returnOrders.reduce((acc, curr) => acc + Number(curr.basePrice || curr.itemPrice || curr.totalPrice || 0), 0);
+        let totalReturned = returnOrders.reduce((acc, curr) => acc + getOrderItemOnlyPrice(curr), 0);
 
         let effectiveSales = Math.max(0, totalSales - totalReturned);
         let commissionCutAmount = Math.round(effectiveSales * (commRate / 100));
@@ -561,8 +611,8 @@
             </div>
 
             <div style="background:#e8f4fd; padding:8px; border-radius:6px; font-size:0.8rem; margin-bottom:8px;">
-              <b>📊 ಲೆಕ್ಕಾಚಾರ & ಕಮಿಷನ್ ಸೆಟ್ಟಿಂಗ್:</b><br>
-              • ಒಟ್ಟು ಮಾರಾಟ: ₹${totalSales} (ರಿಟರ್ನ್ ಕಡಿತ: -₹${totalReturned})<br>
+              <b>📊 ಲೆಕ್ಕಾಚಾರ & ಕಮಿಷನ್ ಸೆಟ್ಟಿಂಗ್ (ಡೆಲಿವರಿ ಚಾರ್ಜ್ ಹೊರತುಪಡಿಸಿ):</b><br>
+              • ಅಂಗಡಿ ವಸ್ತು ಮಾರಾಟ: ₹${totalSales} (ರಿಟರ್ನ್ ಕಡಿತ: -₹${totalReturned})<br>
               
               <div style="display:flex; align-items:center; gap:6px; margin:6px 0;">
                 <label style="font-weight:bold; color:#1565c0;">ಕಮಿಷನ್ ಕಡಿತ (%):</label>
@@ -570,7 +620,7 @@
                 <button class="btn btn-primary" style="padding:4px 8px; font-size:0.75rem;" onclick="saveShopCommission('${s.docId}')">💾 ಸೇವ್</button>
               </div>
 
-              • ಕಮಿಷನ್ ಕಟ್ (${commRate}%): <span style="color:#d32f2f; font-weight:bold;">-₹${commissionCutAmount}</span> | <b>ನೀಡಬೇಕಾದ ಶುದ್ಧ ಮೊತ್ತ: ₹${netPayable}</b>
+              • ಕಮಿಷನ್ ಕಟ್ (${commRate}%): <span style="color:#d32f2f; font-weight:bold;">-₹${commissionCutAmount}</span> | <b>ಅಂಗಡಿ ಮಾಲೀಕರಿಗೆ ನೀಡಬೇಕಾದ ಶುದ್ಧ ಮೊತ್ತ: ₹${netPayable}</b>
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:8px;">
@@ -654,10 +704,10 @@
       }
       container.innerHTML = list.map(b => `
         <div class="card-box">
-          <div class="banner-preview-box" onclick="openImageModal('${b.imageUrl}', 'ಜಾಹೀರಾತು ಬ್ಯಾನರ್ (1200x600)')" title="ದೊಡ್ಡದಾಗಿ ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ">
+          <div class="banner-preview-box" onclick="openImageModal('${b.imageUrl}', 'ಜಾಹೀರಾತು ಬ್ಯಾನರ್ (Full View)')" title="ಪೂರ್ಣ ಸ್ಕ್ರೀನ್‌ನಲ್ಲಿ ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ">
             <img src="${b.imageUrl}" class="banner-preview-img">
           </div>
-          <div style="font-size:0.75rem; color:#666; margin-top:2px; text-align:center;">💡 ಗ್ರಾಹಕರ ಆಪ್‌ನಲ್ಲಿ ಪೂರ್ಣವಾಗಿ ಕಾಣಲು 1200x600 ಅಳತೆಯ ಬ್ಯಾನರ್</div>
+          <div style="font-size:0.75rem; color:#666; margin-top:2px; text-align:center;">💡 ಫೋಟೋ ಪೂರ್ಣವಾಗಿ ಕಾಣುತ್ತದೆ (ಕ್ಲಿಕ್ ಮಾಡಿ ದೊಡ್ಡದಾಗಿ ನೋಡಿ)</div>
           <div style="text-align:right; margin-top:6px;">
             <button class="btn btn-danger" onclick="deleteRecord('master_banners', '${b.docId}', 'ಬ್ಯಾನರ್')">ಡಿಲೀಟ್ ಮಾಡಿ</button>
           </div>
@@ -733,19 +783,24 @@
       });
     }
 
+    // --- TAB 4: DELIVERY BOYS WITH CUSTOM PER-DELIVERY CHARGE SETTING & EARNINGS ---
     function renderDeliveryBoys(list) {
       const container = document.getElementById('deliveryListContainer');
       if (list.length === 0) {
         container.innerHTML = '<p style="color:#777; text-align:center; padding:10px;">ಯಾವುದೇ ಡೆಲಿವರಿ ಬಾಯ್ಸ್ ಇಲ್ಲ.</p>';
         return;
       }
-      container.innerHTML = list.map(db => {
-        let dbOrders = allOrders.filter(o => o.deliveryBoyId === String(db.id) && (o.status === 'DELIVERED' || o.status === 'STEP_4' || o.status === 'RETURN_COMPLETED'));
-        let totalEarnings = dbOrders.length * 100;
+      container.innerHTML = list.map(dbBoy => {
+        let perDeliveryCharge = dbBoy.deliveryChargePerOrder !== undefined && dbBoy.deliveryChargePerOrder !== null
+          ? Number(dbBoy.deliveryChargePerOrder)
+          : 100;
+
+        let dbOrders = allOrders.filter(o => o.deliveryBoyId === String(dbBoy.id) && (o.status === 'DELIVERED' || o.status === 'STEP_4' || o.status === 'RETURN_COMPLETED'));
+        let totalEarnings = dbOrders.length * perDeliveryCharge;
 
         let qrBtnHtml = '';
-        if (db.qrPhoto && db.qrPhoto.length > 50) {
-          qrBtnHtml = `<button class="btn btn-success" style="flex:1;" onclick="openImageModal('${db.qrPhoto}', 'ಡೆಲಿವರಿ ಬಾಯ್ ಕ್ಯೂಆರ್ ಕೋಡ್ - ${db.name}')">📷 ಕ್ಯೂಆರ್ ಕೋಡ್ ನೋಡಿ</button>`;
+        if (dbBoy.qrPhoto && dbBoy.qrPhoto.length > 50) {
+          qrBtnHtml = `<button class="btn btn-success" style="flex:1;" onclick="openImageModal('${dbBoy.qrPhoto}', 'ಡೆಲಿವರಿ ಬಾಯ್ ಕ್ಯೂಆರ್ ಕೋಡ್ - ${dbBoy.name}')">📷 ಕ್ಯೂಆರ್ ಕೋಡ್ ನೋಡಿ</button>`;
         } else {
           qrBtnHtml = `<span style="background:#ffebee; color:#d32f2f; padding:6px; border-radius:4px; font-size:0.75rem; font-weight:bold; flex:1; text-align:center;">❌ ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಕಿಲ್ಲ</span>`;
         }
@@ -753,30 +808,62 @@
         return `
           <div class="card-box" style="border-left: 4px solid var(--primary);">
             <div style="display:flex; gap:10px; align-items:center; margin-bottom:6px;">
-              <img src="${db.photo || 'https://via.placeholder.com/60'}" style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:1px solid #ccc;">
+              <img src="${dbBoy.photo || 'https://via.placeholder.com/60'}" style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:1px solid #ccc;">
               <div>
-                <b>${db.name} (ತಂದೆ: ${db.fatherName || ''})</b><br>
-                ಫೋನ್: ${db.phone} | ID: <b>${db.id}</b><br>
-                ಊರು: ${db.village || ''}, ${db.taluk || ''}
+                <b>${dbBoy.name} (ತಂದೆ: ${dbBoy.fatherName || ''})</b><br>
+                ಫೋನ್: ${dbBoy.phone} | ID: <b>${dbBoy.id}</b><br>
+                ಊರು: ${dbBoy.village || ''}, ${dbBoy.taluk || ''}
               </div>
             </div>
 
             <div style="background:#e8f4fd; padding:8px; border-radius:6px; font-size:0.8rem; margin-bottom:8px;">
-              <b>🛵 ಡೆಲಿವರಿ ಲೆಕ್ಕಾಚಾರ (ರೂ. 100 ಪ್ರತಿ ಡೆಲಿವರಿಗೆ):</b><br>
-              • ಒಟ್ಟು ಯಶಸ್ವಿ ಡೆಲಿವರಿಗಳು: ${dbOrders.length} | <b>ನೀಡಬೇಕಾದ ಮೊತ್ತ: ₹${totalEarnings}</b>
+              <b>🛵 ಡೆಲಿವರಿ ಚಾರ್ಜ್ ಸೆಟ್ಟಿಂಗ್ & ಲೆಕ್ಕಾಚಾರ:</b><br>
+              <div style="display:flex; align-items:center; gap:6px; margin:6px 0; flex-wrap:wrap;">
+                <label style="font-weight:bold; color:#1565c0;">ಪ್ರತಿ ಡೆಲಿವರಿ ಚಾರ್ಜ್ (₹):</label>
+                <input type="number" id="del_charge_input_${dbBoy.docId}" value="${perDeliveryCharge}" style="width:75px; padding:4px; text-align:center; font-weight:bold; border:1px solid #1565c0; border-radius:4px;" min="0">
+                <button class="btn btn-primary" style="padding:4px 8px; font-size:0.75rem;" onclick="saveDeliveryBoyCharge('${dbBoy.docId}')">💾 ಸೇವ್</button>
+              </div>
+              <div style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:6px;">
+                <button class="btn btn-warning" style="padding:3px 7px; font-size:0.7rem;" onclick="quickSetDeliveryCharge('${dbBoy.docId}', 10)">₹10</button>
+                <button class="btn btn-warning" style="padding:3px 7px; font-size:0.7rem;" onclick="quickSetDeliveryCharge('${dbBoy.docId}', 20)">₹20</button>
+                <button class="btn btn-warning" style="padding:3px 7px; font-size:0.7rem;" onclick="quickSetDeliveryCharge('${dbBoy.docId}', 50)">₹50</button>
+                <button class="btn btn-warning" style="padding:3px 7px; font-size:0.7rem;" onclick="quickSetDeliveryCharge('${dbBoy.docId}', 100)">₹100</button>
+              </div>
+              • ಒಟ್ಟು ಯಶಸ್ವಿ ಡೆಲಿವರಿಗಳು: <b>${dbOrders.length}</b> × ₹${perDeliveryCharge} = <b style="color:#1b5e20; font-size:0.95rem;">ಜಮಾ ಆದ ಮೊತ್ತ: ₹${totalEarnings}</b>
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:8px;">
-              <button class="btn btn-warning" style="flex:1;" onclick="openImageModal('${db.qrPhoto || ''}', 'ಡೆಲಿವರಿ ಬಾಯ್ ಕ್ಯೂಆರ್ ಕೋಡ್')">💳 ಪೇಮೆಂಟ್ ಮಾಡಿ (₹${totalEarnings})</button>
+              <button class="btn btn-warning" style="flex:1;" onclick="openImageModal('${dbBoy.qrPhoto || ''}', 'ಡೆಲಿವರಿ ಬಾಯ್ ಕ್ಯೂಆರ್ ಕೋಡ್')">💳 ಪೇಮೆಂಟ್ ಮಾಡಿ (₹${totalEarnings})</button>
               ${qrBtnHtml}
             </div>
 
             <div style="text-align:right;">
-              <button class="btn btn-danger" onclick="deleteRecord('delivery_boys', '${db.docId}', 'ಡೆಲಿವರಿ ಬಾಯ್')">ಸಂಪೂರ್ಣ ಡಿಲೀಟ್</button>
+              <button class="btn btn-danger" onclick="deleteRecord('delivery_boys', '${dbBoy.docId}', 'ಡೆಲಿವರಿ ಬಾಯ್')">ಸಂಪೂರ್ಣ ಡಿಲೀಟ್</button>
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    async function saveDeliveryBoyCharge(docId) {
+      const inputEl = document.getElementById(`del_charge_input_${docId}`);
+      const chargeVal = Number(inputEl ? inputEl.value : 0);
+      if (isNaN(chargeVal) || chargeVal < 0) {
+        alert("ದಯವಿಟ್ಟು ಸರಿಯಾದ ಮೊತ್ತ (₹) ನಮೂದಿಸಿ.");
+        return;
+      }
+      try {
+        await window.updateDoc(window.doc(window.db, "delivery_boys", docId), {
+          deliveryChargePerOrder: chargeVal
+        });
+        alert(`✅ ಪ್ರತಿ ಡೆಲಿವರಿಗೆ ₹${chargeVal} ಚಾರ್ಜ್ ಯಶಸ್ವಿಯಾಗಿ ಸೇವ್ ಆಗಿದೆ!`);
+      } catch(e) { alert("ದೋಷ: " + e.message); }
+    }
+
+    async function quickSetDeliveryCharge(docId, chargeVal) {
+      const inputEl = document.getElementById(`del_charge_input_${docId}`);
+      if (inputEl) inputEl.value = chargeVal;
+      await saveDeliveryBoyCharge(docId);
     }
 
     function renderCustomers(list) {
@@ -794,6 +881,7 @@
       `).join('');
     }
 
+    // --- TAB 6: RETURNS WITH RETURN DELIVERY CHARGE DEDUCTION (e.g., ₹50 minus from ₹113) ---
     function renderReturnsTab(orders) {
       const container = document.getElementById('returnsListContainer');
       let returnOrders = orders.filter(o => o.isReturned || o.status === 'RETURNED' || o.status === 'RETURN_REQUESTED' || o.isReturnRequested);
@@ -803,32 +891,84 @@
       }
       container.innerHTML = returnOrders.map(o => {
         let custUpi = o.customerUpiId || '';
-        let refundAmt = o.totalPrice || 0;
+        let originalAmt = Number(o.totalPrice || o.basePrice || o.itemPrice || 0);
+        let retCharge = o.returnDeliveryCharge !== undefined && o.returnDeliveryCharge !== null
+          ? Number(o.returnDeliveryCharge)
+          : defaultReturnDeliveryCharge;
+        let refundAmt = Math.max(0, originalAmt - retCharge);
         let qrPhoto = o.customerQrPhoto || '';
         let upiPayLink = custUpi ? `upi://pay?pa=${custUpi}&am=${refundAmt}&cu=INR&tn=Refund_Order_${o.orderId || o.id}` : '#';
 
         return `
           <div class="card-box" style="border-left: 4px solid var(--danger);">
-            <b>${o.productName}</b> (₹${refundAmt})<br>
+            <b>${o.productName}</b> (ಆರ್ಡರ್ ಮೊತ್ತ: ₹${originalAmt})<br>
             ಗ್ರಾಹಕರು: ${o.customer ? o.customer.name : 'N/A'} (${o.customer ? o.customer.phone : ''})<br>
             <b>ಗ್ರಾಹಕರ UPI ID:</b> ${custUpi || 'ನಮೂದಿಸಿಲ್ಲ'}<br>
-            ${qrPhoto ? `<button class="btn btn-primary" style="margin-top:6px;" onclick="openImageModal('${qrPhoto}', 'ಗ್ರಾಹಕರ QR ಕೋಡ್')">📱 ಗ್ರಾಹಕರ QR ಕೋಡ್ ನೋಡಿ</button>` : ''}
+
+            <div style="background:#fff3e0; border:1px solid #ffcc80; border-radius:6px; padding:8px; margin:6px 0; font-size:0.8rem;">
+              <b>↩️ ರಿಟರ್ನ್ ಡೆಲಿವರಿ ಚಾರ್ಜ್ ಲೆಕ್ಕಾಚಾರ:</b><br>
+              • ಆರ್ಡರ್ ಮೊತ್ತ: ₹${originalAmt}<br>
+              <div style="display:flex; align-items:center; gap:6px; margin:4px 0;">
+                <label style="font-weight:bold; color:#e65100;">ರಿಟರ್ನ್ ಡೆಲಿವರಿ ಚಾರ್ಜ್ (₹):</label>
+                <input type="number" id="ret_charge_${o.id}" value="${retCharge}" style="width:70px; padding:3px; text-align:center; font-weight:bold; border:1px solid #e65100; border-radius:4px;" min="0" oninput="recalcReturnRow('${o.id}', ${originalAmt})">
+                <button class="btn btn-warning" style="padding:3px 7px; font-size:0.72rem;" onclick="saveOrderReturnCharge('${o.id}', ${originalAmt})">💾 ಸೇವ್</button>
+              </div>
+              • ರಿಟರ್ನ್ ಚಾರ್ಜ್ ಮೈನಸ್ ಆಗಿ ಗ್ರಾಹಕರಿಗೆ ನೀಡಬೇಕಾದ ಮೊತ್ತ: <b id="net_refund_text_${o.id}" style="color:#2e7d32; font-size:0.95rem;">₹${refundAmt}</b>
+            </div>
+
+            ${qrPhoto ? `<button class="btn btn-primary" style="margin-top:4px;" onclick="openImageModal('${qrPhoto}', 'ಗ್ರಾಹಕರ QR ಕೋಡ್ (Full View)')">📱 ಗ್ರಾಹಕರ QR ಕೋಡ್ ನೋಡಿ</button>` : ''}
             
             <div style="margin-top:8px;">
-              ${custUpi ? `<a href="${upiPayLink}" class="btn btn-success" style="width:100%; text-decoration:none; text-align:center; padding:8px;">📲 ನೇರವಾಗಿ UPI ಗೆ ಹಣ ಕಳುಹಿಸಿ (Pay ₹${refundAmt})</a>` : '<span style="color:red; font-size:0.75rem;">ಗ್ರಾಹಕರು UPI ID ನೀಡಲಿಲ್ಲ</span>'}
+              ${custUpi ? `<a id="upi_pay_btn_${o.id}" href="${upiPayLink}" class="btn btn-success" style="width:100%; text-decoration:none; text-align:center; padding:8px;">📲 ನೇರವಾಗಿ UPI ಗೆ ಹಣ ಕಳುಹಿಸಿ (Pay ₹${refundAmt})</a>` : '<span style="color:red; font-size:0.75rem;">ಗ್ರಾಹಕರು UPI ID ನೀಡಲಿಲ್ಲ</span>'}
             </div>
           </div>
         `;
       }).join('');
     }
 
+    function recalcReturnRow(orderDocId, originalAmt) {
+      const inp = document.getElementById(`ret_charge_${orderDocId}`);
+      const retVal = Math.max(0, Number(inp ? inp.value : 0));
+      const netRefund = Math.max(0, originalAmt - retVal);
+      const netText = document.getElementById(`net_refund_text_${orderDocId}`);
+      if (netText) netText.innerText = `₹${netRefund}`;
+
+      const payBtn = document.getElementById(`upi_pay_btn_${orderDocId}`);
+      if (payBtn && payBtn.href && payBtn.href.startsWith('upi://pay')) {
+        const urlObj = new URL(payBtn.href);
+        urlObj.searchParams.set('am', String(netRefund));
+        payBtn.href = urlObj.toString();
+        payBtn.innerText = `📲 ನೇರವಾಗಿ UPI ಗೆ ಹಣ ಕಳುಹಿಸಿ (Pay ₹${netRefund})`;
+      }
+    }
+
+    async function saveOrderReturnCharge(orderDocId, originalAmt) {
+      const inp = document.getElementById(`ret_charge_${orderDocId}`);
+      const retVal = Number(inp ? inp.value : 0);
+      if (isNaN(retVal) || retVal < 0) {
+        alert("ದಯವಿಟ್ಟು ಸರಿಯಾದ ರಿಟರ್ನ್ ಡೆಲಿವರಿ ಚಾರ್ಜ್ ನಮೂದಿಸಿ.");
+        return;
+      }
+      const netRefund = Math.max(0, originalAmt - retVal);
+      try {
+        await window.updateDoc(window.doc(window.db, "orders", orderDocId), {
+          returnDeliveryCharge: retVal,
+          netRefundAmount: netRefund
+        });
+        alert(`✅ ರಿಟರ್ನ್ ಡೆಲಿವರಿ ಚಾರ್ಜ್ ₹${retVal} ಸೇವ್ ಆಗಿದೆ. ಗ್ರಾಹಕರಿಗೆ ₹${netRefund} ರೀಫಂಡ್ ಮೊತ್ತ ನಿಗದಿಯಾಗಿದೆ.`);
+      } catch(e) { alert("ದೋಷ: " + e.message); }
+    }
+
     function openImageModal(imgSrc, title) {
       if (!imgSrc || imgSrc === 'undefined' || imgSrc.length < 20) {
-        alert("ಯಾವುದೇ ಒರಿಜಿನಲ್ ಕ್ಯೂಆರ್ ಕೋಡ್ ಲಭ್ಯವಿಲ್ಲ.");
+        alert("ಯಾವುದೇ ಒರಿಜಿನಲ್ ಕ್ಯೂಆರ್ ಕೋಡ್ ಅಥವಾ ಫೋಟೋ ಲಭ್ಯವಿಲ್ಲ.");
         return;
       }
       document.getElementById('modalTitle').innerText = title;
-      document.getElementById('modalImgSrc').src = imgSrc;
+      const imgEl = document.getElementById('modalImgSrc');
+      imgEl.style.transform = 'scale(1)';
+      imgEl.style.cursor = 'zoom-in';
+      imgEl.src = imgSrc;
       document.getElementById('downloadLink').href = imgSrc;
       document.getElementById('imageModal').style.display = 'flex';
     }
@@ -836,11 +976,11 @@
     function closeImageModal() { document.getElementById('imageModal').style.display = 'none'; }
 
     function toggleZoom(img) {
-      if (img.style.transform === 'scale(1.8)') {
+      if (img.style.transform === 'scale(1.6)') {
         img.style.transform = 'scale(1)';
         img.style.cursor = 'zoom-in';
       } else {
-        img.style.transform = 'scale(1.8)';
+        img.style.transform = 'scale(1.6)';
         img.style.cursor = 'zoom-out';
       }
     }
